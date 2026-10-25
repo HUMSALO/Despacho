@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
-<title>Despacho v4</title>
+<title>Despacho v5</title>
 <style>
 :root{--primary:#1A73E8;--on-primary:#fff;--container:#E8F0FE;--on-container:#174EA6;--bg:#F1F3F4;--surface:#FFFFFF;--on-surface:#202124;--outline:#80868B;--div:#DADCE0;--bar:#FFFFFF;--snack:#323232;--on-snack:#FFFFFF;--sh:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15)}
 @media (prefers-color-scheme:dark){:root{--primary:#8AB4F8;--on-primary:#202124;--container:#394457;--on-container:#D2E3FC;--bg:#202124;--surface:#292A2D;--on-surface:#E8EAED;--outline:#9AA0A6;--div:#3C4043;--bar:#292A2D;--snack:#E8EAED;--on-snack:#202124}}
@@ -77,7 +77,7 @@ svg{width:18px;height:18px;fill:currentColor}
 </style>
 </head>
 <body>
-<header>Despacho <small>v4.0</small></header>
+<header>Despacho <small>v5.0</small></header>
 <main>
   <section class="card">
     <div class="field"><label for="despachador">Despachador</label><textarea id="despachador" rows="1"></textarea></div>
@@ -116,6 +116,8 @@ function bloque(host,id,label){
   <div class="row"><button class="tonal" data-copy="${id}">${ICON}Copiar</button></div>`);
 }
 [['tipo','Tipo de incidente'],['detalle','Detalle de incidente'],['direccion','Dirección']].forEach(c=>bloque($('campos'),...c));
+$('campos').insertAdjacentHTML('afterbegin','<div id="incSel" hidden></div>');
+$('incSel').addEventListener('click',e=>{const b=e.target.closest('[data-inc]');if(!b)return;guardaSel();incSel=+b.dataset.inc;incMostrar();incPintar();filaRender()});
 bloque($('cierre'),'narracion','Narración de hechos');
 bloque($('filaCard'),'fila','Fila para Excel');
 $('fila').hidden=true;$('fila').insertAdjacentHTML('afterend','<div id="filaGrid" class="xgrid"></div>');
@@ -139,7 +141,7 @@ $('recLista').addEventListener('click',e=>{
 });
 $('recurso').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase();filaRender();if(!$('recLista').hidden)recPintar()});
 $('recurso').addEventListener('change',e=>{const v=e.target.value.trim().toUpperCase();e.target.value=v;if(v&&!REC0.includes(v)&&!recLoad().includes(v))recSave(recLoad().concat(v));if(!$('recLista').hidden)recPintar()});
-$('filaGrid').addEventListener('input',()=>{$('fila').value=[...$('filaGrid').querySelectorAll('td')].map(td=>td.textContent.replace(/[\t\r\n]+/g,' ').trim().toUpperCase()).join('\t')});
+$('filaGrid').addEventListener('input',()=>{$('fila').value=[...$('filaGrid').querySelectorAll('tr')].slice(1).map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.replace(/[\t\r\n]+/g,' ').trim().toUpperCase()).join('\t')).join('\n')});
 $('resultado').insertAdjacentHTML('beforeend','<div id="xlsWrap" hidden><div class="field"><label>Excel</label><div id="xlsGrid" class="xgrid"></div></div><div class="row"><button class="tonal" data-copy="excel">'+ICON+'Copiar</button></div><textarea id="excel" hidden></textarea></div>');
 $('xlsGrid').addEventListener('input',()=>{$('excel').value='\n'.repeat(11)+[...$('xlsGrid').querySelectorAll('[data-i]')].map(td=>td.textContent.trim()).join('\n')});
 bloque($('resultado'),'salida','Resultado');
@@ -174,7 +176,7 @@ const SIN={
   _otro:['DECOMISO','CARACTERISTICAS','DIRECCION','NACIMIENTO','FECHA DE NACIMIENTO','FECHA NACIMIENTO','GRUPO','NACIONALIDAD','EXPEDIENTE','JUZGADO','CANTON','DISTRITO','CEDULA OFICIAL ACTUANTE','CEDULA OFICIAL ASISTENTE']
 };
 const MAPA={};for(const k in SIN)SIN[k].forEach(a=>MAPA[a]=k);
-const DROGAS=['MARIHUANA','COCAINA','CRACK','HEROINA','METANFETAMINA','PASTA BASE','HACHIS','EXTASIS','LSD','ANFETAMINA'];
+const DROGAS=['MARIHUANA','COCAINA','CRACK','HEROINA','METANFETAMINA','PASTA BASE','HACHIS','EXTASIS','LSD','ANFETAMINA','TUSI','WAX'];
 
 function limpiaLinea(l){
   return l.replace(/[\u2060\u200B\u200C\u200D\uFE0F]/g,'').replace(/\*/g,'')
@@ -214,6 +216,89 @@ function fmtCantidad(s=''){
   let item=t.replace(d,' ').replace(/\s+/g,' ').trim().replace(/\bDE$/,'').replace(/^DE\b/,'').trim();
   return item?item+' DE '+d:d;
 }
+
+/* ---------- Plantilla de incidente con varios bloques: DROGAS -> ARMAS -> CONTRAVENCIONES ---------- */
+const joinY=a=>a.length<2?(a[0]||''):a.slice(0,-1).join(', ')+' Y '+a[a.length-1];
+function leerIncidente(txt){
+  const cl=txt.split(/\r?\n/).map(limpiaLinea);
+  const isT=l=>/^TIPO( DE DROGA)?:?$/.test(norm(l));
+  const cab=l=>{const m=l.match(/^([^:：]{1,40}?)\s*[:：]/);return m?(MAPA[norm(m[1])]||''):''};
+  const esCab=l=>{const k=cab(l);return !!k&&k!=='bebida'};
+  let first=cl.findIndex(isT),end,libre=false;
+  if(first>=0){end=cl.findIndex((l,i)=>i>first&&esCab(l));if(end<0)end=cl.length}
+  else{
+    /* Sin rótulo TIPO: texto libre justo antes de NOMBRE (p. ej. "DECOMISO ARMA BLANCA 9.1 CM") */
+    const iN=cl.findIndex(l=>['nombre','cedula','of1','of2'].includes(cab(l)));if(iN<0)return null;
+    let j=iN-1;while(j>=0&&!cl[j])j--;end=j+1;
+    while(j>=0&&cl[j]&&!esCab(cl[j]))j--;
+    first=j+1;if(first>=end)return null;libre=true;
+  }
+  const v=leer(cl.slice(0,first).concat(cl.slice(end)).join('\n'));
+  const up=x=>(x||'').toUpperCase().replace(/\s+/g,' ').trim();
+  const dr={},ord=[],arm={BLANCA:[],FUEGO:[],ARMA:[]},con=[];
+  const vis=id=>{if(!ord.includes(id))ord.push(id)};
+  let cur=libre?{k:'T'}:null;
+  const lim=l=>up(l).replace(/^(SE\s+)?DECOMIS(O|A|ADO)\s+(DE\s+)?(UN\s+|UNA\s+)?/,'');
+  for(const l of cl.slice(first,end)){
+    if(!l)continue;const n=norm(l);
+    if(/^TIPO DE DROGA:?$/.test(n)){cur={k:'D',n:'',it:[]};continue}
+    if(/^TIPO:?$/.test(n)){cur={k:'T'};continue}
+    if(!cur)continue;
+    if(cur.k==='D'){
+      if(!cur.n&&!/^\d/.test(n)){cur.n=n;dr[n]=dr[n]||[];vis('DROGA');continue}
+      if(cur.n)dr[cur.n].push(n);continue}
+    /* Detección dinámica por palabras clave: arma blanca / arma de fuego / arma / droga / contravención */
+    const R_BL=/\bARMAS?\s+BLANCAS?\b|CUCHILLO|NAVAJA|MACHETE|PUNZON|PUNZOCORTANTE|TIJERA|CUCHILLA|HACHA\b|BAYONETA|CORTAPLUMAS|DESTORNILLADOR/;
+    const R_FU=/\bARMAS?\s+(DE\s+)?FUEGO\b|PISTOLA|REVOLVER|ESCOPETA|FUSIL|RIFLE|SUBAMETRALLADORA|CARABINA|HECHIZA/;
+    if(R_BL.test(n)){arm.BLANCA.push(lim(l));vis('BLANCA');continue}
+    if(R_FU.test(n)){arm.FUEGO.push(lim(l));vis('FUEGO');continue}
+    if(/\bARMAS?\b/.test(n)){arm.ARMA.push(lim(l));vis('ARMA');continue}
+    if(!/^CONTRAVENCION/.test(n)){
+      const d=DROGAS.find(x=>n.includes(x));
+      if(d){const it=norm(lim(l)).replace(d,' ').replace(/\bDE APARENTE DROGA\b|\bAPARENTE DROGA\b|\bDROGAS?\b/g,' ').replace(/\s+/g,' ').trim().replace(/\bDE$/,'').replace(/^DE\b/,'').trim();(dr[d]=dr[d]||[]).push(it);vis('DROGA');continue}
+      if(/\bDROGAS?\b|ESTUPEFACIENTE|PSICOTROPIC|SUSTANCIA/.test(n)){const it=norm(lim(l)).replace(/\bDE APARENTE DROGA\b|\bAPARENTE DROGA\b|\bDROGAS?\b|ESTUPEFACIENTES?|PSICOTROPICOS?|SUSTANCIAS?( ILICITAS?)?/g,' ').replace(/\s+/g,' ').trim().replace(/\bDE$/,'').replace(/^(DE|TIPO)\b/,'').trim();(dr['DROGA']=dr['DROGA']||[]).push(it);vis('DROGA');continue}
+    }
+    if(/^CONTRAVENCION|LICOR|BEBIDA|ALCOHOL|CERVEZA|GUARO|ALTERACION|ALTERANDO|ESCANDALO|DESORDEN|OFENSA|OFENDIENDO|IRRESPET|INSULT/.test(n)){
+      const id=/LICOR|BEBIDA|ALCOHOL|CERVEZA|GUARO/.test(n)?'LICOR':/ALTERACION|ALTERANDO|ESCANDALO|DESORDEN/.test(n)?'ALTER':/OFENSA|OFENDIENDO|IRRESPET|INSULT/.test(n)?'OFENSA':'CONTRA:'+up(l);
+      const std=id==='LICOR'?'CONTRAVENCION POR CONSUMO DE LICOR EN VIA PUBLICA':id==='ALTER'?'CONTRAVENCION POR ALTERACION AL ORDEN PUBLICO':id==='OFENSA'?'CONTRAVENCION POR OFENSAS A LA AUTORIDAD':up(l);
+      const t=/^CONTRAVENCION/.test(n)?up(l):std;
+      con.push({t,b:'',id});vis(id);continue}
+    const mb=l.match(/^BEBIDA[^:]*:\s*(.*)$/i);if(mb&&con.length){con[con.length-1].b=up(mb[1])}
+  }
+  const nom=up(v.nombre),ced=(v.cedula||'').replace(/[^\dA-Za-z]/g,'').toUpperCase();
+  const base=[];if(nom)base.push(nom);if(ced)base.push('CEDULA '+ced);
+  const lugar=up(v.lugar),f=fmtFecha(v.fecha),h=fmtHora(v.hora);
+  const mk=(id,et,tipo,tail,sitD)=>{
+    const det=[...base,tail].filter(Boolean).join(' ');
+    const q=[...base,tail].filter(Boolean);if(lugar)q.push('ESTO EN '+lugar);
+    let nar=q.join(' ');if(h||f)nar+=(nar?'. ':'')+'AL SER LAS '+(h||'')+' HORAS DEL '+(f||'');
+    return{id,et,tipo,det,nar,sitD:sitD||''};
+  };
+  const incs=[];
+  for(const id of ord){
+    if(id==='DROGA'){
+      const ks=Object.keys(dr).filter(k=>dr[k].length);
+      const gen=k=>k==='DROGA';
+      const g=ks.map(k=>gen(k)?(joinY(dr[k].filter(Boolean))?joinY(dr[k].filter(Boolean))+' DE APARENTE DROGA':'APARENTE DROGA'):(joinY(dr[k].filter(Boolean))?joinY(dr[k].filter(Boolean))+' DE '+k:k));
+      const gs=ks.map(k=>gen(k)?(joinY(dr[k].filter(Boolean))?joinY(dr[k].filter(Boolean))+' DE APARENTE DROGA':'APARENTE DROGA'):(joinY(dr[k].filter(Boolean))?joinY(dr[k].filter(Boolean))+' DE APARENTE DROGA '+k:'APARENTE DROGA '+k));
+      if(g.length)incs.push(mk(id,'DROGA','DECOMISO DE DROGA','PORTA '+joinY(g),['SE LE DECOMISA A',...base,joinY(gs)].join(' ')));
+    }else if(id==='BLANCA')incs.push(mk(id,'ARMA BLANCA','DECOMISO DE ARMA BLANCA','PORTA '+arm.BLANCA.join(' Y ')));
+    else if(id==='FUEGO')incs.push(mk(id,'ARMA DE FUEGO','DECOMISO DE ARMA DE FUEGO','PORTA '+arm.FUEGO.join(' Y ')));
+    else if(id==='ARMA')incs.push(mk(id,'ARMA','DECOMISO DE ARMA','PORTA '+arm.ARMA.join(' Y ')));
+    else if(id==='LICOR'){const cs=con.filter(c=>c.id==='LICOR'),b=cs.map(c=>c.b).filter(Boolean);incs.push(mk(id,'LICOR',cs[0].t,'CONSUMIENDO '+(b.length?b.join(' Y '):'BEBIDA ALCOHOLICA')))}
+    else if(id==='ALTER'){const c=con.find(c=>c.id===id);incs.push(mk(id,'ALTERACIÓN',c.t,'ALTERANDO EL ORDEN PÚBLICO'))}
+    else if(id==='OFENSA'){const c=con.find(c=>c.id===id);incs.push(mk(id,'OFENSAS',c.t,'OFENDIENDO A LA AUTORIDAD'))}
+    else{const c=con.find(c=>c.id===id);incs.push(mk(id,'CONTRAVENCIÓN',c.t,'INCURRIENDO EN '+c.t))}
+  }
+  return{v,incs,lugar};
+}
+let incs=[],incSel=0,incKey='';
+function guardaSel(){if(incs.length&&incs[incSel]){incs[incSel].tipo=$('tipo').value;incs[incSel].det=$('detalle').value;incs[incSel].nar=$('narracion').value}}
+function incMostrar(){const i=incs[incSel];if(!i)return;$('tipo').value=i.tipo;$('detalle').value=i.det;$('narracion').value=i.nar;['tipo','detalle','narracion'].forEach(x=>auto($(x)))}
+function incPintar(){
+  const o=$('incSel');o.hidden=incs.length<2;
+  o.innerHTML=incs.length<2?'':'<div style="font-size:12px;margin:4px 4px 8px;color:var(--on-surface)">INCIDENTES EN LA PLANTILLA ('+incs.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+incs.map((x,i)=>`<button class="chip${i===incSel?' sel':''}" data-inc="${i}">${x.et}</button>`).join('')+'</div>';
+}
 let lastEsp='';
 function armar(){
   const txt=$('plantilla').value;
@@ -221,7 +306,8 @@ function armar(){
   const esp=nuevo&&!circ?'CORTE ELITE':cdc?'CORTE DE CONTROL':circ?'PLANTILLA CIRCULAR':eli?'CORTE ELITE':'';
   eliteRender(eli?txt:null);
   vista(txt.trim()?esp:null);
-  if(esp){lastV=null;filaRender();
+  incs=[];
+  if(esp){lastV=null;incPintar();filaRender();
     $('salida').value=esp==='CORTE ELITE'?'':filtrar(txt);
     if(esp==='PLANTILLA CIRCULAR'){if(lastEsp!==esp)salCol(true)}else{$('salida').classList.remove('col');$('salTog').classList.remove('abierto')}
     lastEsp=esp;auto($('salida'));
@@ -230,6 +316,12 @@ function armar(){
     if(x){$('excel').value=x.col;xlsRender(x);$('leyenda').textContent=[x.fil.length?'LEYENDA (FILA DEL EXCEL: CANTIDAD)\n'+x.fil.join('\n'):'',x.av.length?'⚠ REVISAR EN EL EXCEL:\n'+x.av.join('\n'):''].filter(Boolean).join('\n\n');$('sinFila').textContent=x.sin.length?'SIN FILA EN EXCEL: '+x.sin.join(' | '):''}
     return}
   lastEsp='';
+  const mi=/PLANTILLA DE INCIDENTE/.test(nT)&&!/APREHENSION/.test(nT)?leerIncidente(txt):null;
+  if(mi&&mi.incs.length){
+    const key=mi.incs.map(x=>x.id).join('|');if(key!==incKey){incSel=0;incKey=key}
+    incs=mi.incs;incMostrar();lastLugar=mi.lugar;dirRender();incPintar();
+    lastV=mi.v;filaRender();return}
+  incKey='';incPintar();
   const v=leer(txt);
   const up=s=>(s||'').toUpperCase().replace(/\s+/g,' ').trim();
   const lugar=up(v.lugar),nom=up(v.nombre);
@@ -251,7 +343,7 @@ function armar(){
     nar=(v.hechos||'').split(/\n/).map(x=>x.trim().toUpperCase()).filter(Boolean).join('\n\n');
   }else{
     if(esLicor)tipo=up(v.tipoAp)||'CONTRAVENCION POR CONSUMO DE LICOR EN VIA PUBLICA';
-    else if(esArma)tipo='DECOMISO DE '+(/BLANCA/.test(tn)?'ARMA BLANCA':'ARMA');
+    else if(esArma)tipo='DECOMISO DE '+(/BLANCA/.test(tn)?'ARMA BLANCA':/FUEGO|PISTOLA|REVOLVER|ESCOPETA|FUSIL|RIFLE/.test(tn)?'ARMA DE FUEGO':'ARMA');
     else if(esDroga)tipo='DECOMISO DE DROGA';
     const p=[...base];
     if(esLicor)p.push('CONSUMIENDO '+(up(v.bebida)||'BEBIDA ALCOHOLICA'));
@@ -274,29 +366,36 @@ function armar(){
 let lastV=null;
 function sitDroga(c){
   const t=fmtCantidad(c||'');if(!t)return'';
-  const m=t.match(/^(.*) DE (MARIHUANA|COCAINA|CRACK|HEROINA|METANFETAMINA|PASTA BASE|HACHIS|EXTASIS|LSD|ANFETAMINA)$/);
+  const m=t.match(/^(.*) DE (MARIHUANA|COCAINA|CRACK|HEROINA|METANFETAMINA|PASTA BASE|HACHIS|EXTASIS|LSD|ANFETAMINA|TUSI|WAX)$/);
   if(m)return m[1]+' DE APARENTE DROGA '+m[2];
   return DROGAS.includes(t)?'APARENTE DROGA '+t:t;
 }
 function filaRender(){
   const card=$('filaCard');
   if(!lastV){card.hidden=true;$('fila').value='';$('filaGrid').innerHTML='';return}
+  guardaSel();
   const v=lastV,up=s=>(s||'').toUpperCase().replace(/\s+/g,' ').trim();
   const f=fmtFecha(v.fecha).replace(/-/g,'/'),h=fmtHora(v.hora);
   const nom=up(v.nombre),ced=(v.cedula||'').replace(/[^\dA-Za-z]/g,'').toUpperCase();
   const mov=($('recurso').value||'').trim().toUpperCase()||(String(v.movil||'').match(/\d+/)||[''])[0];
   const of=v.ofs?v.ofs.split('\n').map(up).filter(Boolean).join('/'):[up(v.of1),up(v.of2)].filter(Boolean).join('/');
-  let sit;
-  if(/^DECOMISO DE DROGA/.test($('tipo').value.trim())){
-    const a=['SE LE DECOMISA A'];if(nom)a.push(nom);if(ced)a.push('CEDULA '+ced);
-    const c=sitDroga(v.cantidad);if(c)a.push(c);
-    sit=a.join(' ');
-  }else sit=$('detalle').value.trim();
-  const cols=[f,h?h+':00':'','RECORRIDO',$('tipo').value.trim(),mov,of,up(v.lugar),sit,$('despachador').value.trim()];
-  const cv=cols.map(x=>String(x).replace(/[\t\r\n]+/g,' ').toUpperCase());
-  $('fila').value=cv.join('\t');
+  const fila=(tipo,sit)=>[f,h?h+':00':'','RECORRIDO',tipo,mov,of,up(v.lugar),sit,$('despachador').value.trim()];
+  let rows;
+  if(incs.length){
+    rows=incs.map(i=>{const t=i.tipo.trim();return fila(t,(/^DECOMISO DE DROGA/.test(t)&&i.sitD)?i.sitD:i.det.trim())});
+  }else{
+    let sit;
+    if(/^DECOMISO DE DROGA/.test($('tipo').value.trim())){
+      const a=['SE LE DECOMISA A'];if(nom)a.push(nom);if(ced)a.push('CEDULA '+ced);
+      const c=sitDroga(v.cantidad);if(c)a.push(c);
+      sit=a.join(' ');
+    }else sit=$('detalle').value.trim();
+    rows=[fila($('tipo').value.trim(),sit)];
+  }
+  const cv=rows.map(r=>r.map(x=>String(x).replace(/[\t\r\n]+/g,' ').toUpperCase()));
+  $('fila').value=cv.map(r=>r.join('\t')).join('\n');
   const TIT=['FECHA','HORA','METODO INGRESO','INCIDENTE/CODIGO','RECURSO QUE ATIENDE INCIDENTE','OFICIALES (ACTUANTE Y ASISTENTE)','UBICACIÓN','SITUACIÓN','DESPACHADOR'];
-  $('filaGrid').innerHTML='<table class="xt"><tr>'+TIT.map(t=>`<th>${t}</th>`).join('')+'</tr><tr>'+cv.map(c=>`<td contenteditable="true">${escA(c)}</td>`).join('')+'</tr></table>';
+  $('filaGrid').innerHTML='<table class="xt"><tr>'+TIT.map(t=>`<th>${t}</th>`).join('')+'</tr>'+cv.map(r=>'<tr>'+r.map(c=>`<td contenteditable="true">${escA(c)}</td>`).join('')+'</tr>').join('')+'</table>';
   card.hidden=false;
 }
 
@@ -785,7 +884,7 @@ pl.addEventListener('input',plSync);
 pl.addEventListener('paste',()=>setTimeout(()=>{plCol(true);if(esCirc())salCol(true);plSync()},0));
 document.addEventListener('input',e=>{
   const t=e.target;if(t.tagName!=='TEXTAREA')return;
-  if(t.id!=='excel')mayus(t);auto(t);if(t===$('despachador')){try{localStorage.setItem('despachador',t.value)}catch(e){}}if(t===$('despachador')){filaRender();if(eliteTxt)eliteRender(eliteTxt)}if(t===pl)armar();
+  if(t.id!=='excel')mayus(t);auto(t);if(t===$('despachador')){try{localStorage.setItem('despachador',t.value)}catch(e){}}if(t===$('despachador')){filaRender();if(eliteTxt)eliteRender(eliteTxt)}if(t.id==='tipo'||t.id==='detalle'||t.id==='narracion')filaRender();if(t===pl)armar();
 });
 function onInputApo(e){
   const t=e.target;if(!t.classList||!t.classList.contains('apoin'))return;
@@ -819,7 +918,7 @@ $('limpiarDesp').onclick=()=>{
   auto(d);filaRender();if(eliteTxt)eliteRender(eliteTxt);snack('Despachador limpio');
 };
 $('limpiar').onclick=()=>{
-  pl.value='';plCol(true);plSync();lastLugar='';lastV=null;eliteRender(null);$('fila').value='';$('filaCard').hidden=true;$('salida').value='';$('excel').value='';vista(null);['tipo','detalle','direccion','narracion'].forEach(i=>$(i).value='');
+  pl.value='';plCol(true);plSync();lastLugar='';lastV=null;incs=[];incKey='';incPintar();eliteRender(null);$('fila').value='';$('filaCard').hidden=true;$('salida').value='';$('excel').value='';vista(null);['tipo','detalle','direccion','narracion'].forEach(i=>$(i).value='');
   document.querySelectorAll('textarea').forEach(auto);snack('Plantilla limpia');
 };
 /* Despachador: se llena una vez y queda guardado; Limpiar no lo borra, solo cambia si se edita o se borra aquí */
