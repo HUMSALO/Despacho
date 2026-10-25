@@ -86,7 +86,7 @@ svg{width:18px;height:18px;fill:currentColor}
   <section class="card">
     <div class="field"><label for="plantilla">Ingresa la plantilla</label><textarea id="plantilla" rows="1"></textarea></div>
     <div class="row" style="justify-content:space-between;align-items:center">
-      <div style="display:flex;gap:8px"><button class="tonal" id="pegar"><svg viewBox="0 0 24 24"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0S9.6.84 9.18 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 18H5V4h2v3h10V4h2z"/></svg>Pegar</button><button class="text" id="limpiar"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg>Limpiar</button></div>
+      <div style="display:flex;gap:8px"><button class="tonal" id="pegar"><svg viewBox="0 0 24 24"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0S9.6.84 9.18 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 18H5V4h2v3h10V4h2z"/></svg>Pegar</button><button class="tonal" id="copiarPl"><svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11z"/></svg>Copiar</button><button class="text" id="limpiar"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg>Limpiar</button></div>
       <button class="arrow" id="plTog" aria-label="Mostrar u ocultar plantilla"><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>
     </div>
   </section>
@@ -909,6 +909,7 @@ async function copiarTexto(t){
   snack('Copiado');
 }
 $('eliteBtn').onclick=eliteAbrir;
+$('copiarPl').onclick=()=>copiarTexto(pl.value);
 $('pegar').onclick=async()=>{
   try{const t=await navigator.clipboard.readText();pl.value=t.toUpperCase();armar();plCol(true);if(esCirc())salCol(true);plSync();snack('Pegado')}
   catch(e){pl.focus();snack('Permite el acceso al portapapeles o pega manualmente')}
