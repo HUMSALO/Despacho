@@ -49,17 +49,11 @@ svg{width:18px;height:18px;fill:currentColor}
 [hidden]{display:none!important}
 #excel{max-height:240px;overflow:auto}
 .mini{height:30px;padding:0 10px;font-size:12px}
-.modal{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;padding:0 8px 8px;pointer-events:none}
-.modal .box{pointer-events:auto;background:var(--surface);border-radius:16px;box-shadow:0 -4px 24px rgba(0,0,0,.28);border:1px solid var(--div);width:100%;max-width:520px;max-height:58vh;display:flex;flex-direction:column;animation:subir .2s ease-out}
-@keyframes subir{from{transform:translateY(40px);opacity:0}}
-.modal .grab{width:40px;height:5px;border-radius:3px;background:var(--outline);margin:8px auto 0;cursor:pointer;flex:none}
-.modal .hd{padding:10px 16px 12px;font-weight:500;font-size:15px;border-bottom:1px solid var(--div);cursor:pointer}
-.modal .bd{padding:4px 16px;overflow:auto;flex:1}
-.modal .ft{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--div);justify-content:space-between}
-.modal.min .bd,.modal.min .ft{display:none}
-body.sheetOn main{padding-bottom:62vh}
-body.sheetOn.minOn main{padding-bottom:90px}
-.modal .ft button:disabled{opacity:.4}
+.fw{display:flex;flex-direction:column;height:100vh;background:var(--surface)}
+.fw .hd{padding:14px 16px;font-weight:500;font-size:15px;border-bottom:1px solid var(--div)}
+.fw .bd{padding:4px 16px;overflow:auto;flex:1}
+.fw .ft{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--div);justify-content:flex-end}
+.fw .ft button:disabled{opacity:.4}
 .erow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--div)}
 .erow .l{flex:1;font-size:13px}
 .erow .v{font-weight:700;min-width:36px;text-align:right}
@@ -91,15 +85,12 @@ body.sheetOn.minOn main{padding-bottom:90px}
   </section>
   <section class="card" id="resultado" hidden></section>
 </main>
-<div class="modal" id="eliteModal" hidden>
-  <div class="box"><div class="grab" id="eGrab"></div><div class="hd" id="eHd"></div><div class="bd" id="eBd"></div>
-    <div class="ft"><button class="text" id="eAtras">Atrás</button><button class="text" id="eCerrar">Cerrar</button><button class="tonal" id="eSig">Siguiente</button></div>
-  </div>
-</div>
 <div class="snack" id="snack"></div>
 
 <script>
-const $=id=>document.getElementById(id);
+var flot=null;
+const flotOn=()=>!!flot&&!flot.closed;
+const $=id=>(flotOn()&&flot.document.getElementById(id))||document.getElementById(id);
 const ICON='<svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11z"/></svg>';
 const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
 const auto=t=>{if(t.classList.contains('col')){t.style.height='';return}t.style.height='auto';t.style.height=t.scrollHeight+2+'px'};
@@ -539,7 +530,7 @@ function eliteArmar(txt){
     else{sin.push(pos+' '+s.c);pos+=1}
   });
   if(corte){
-    seq.push({pag:String(pos),t:'OBSERVACIONES',rows:[obs?['OBSERVACIONES',obs]:['SIN OBSERVACIONES EN EL CORTE','']]});
+    if(obs)seq.push({pag:String(pos),t:'OBSERVACIONES',rows:[['OBSERVACIONES',obs]]});
     if(extra.length)seq.push({pag:'—',t:'REVISAR: SIN CLASIFICAR',rows:extra});
   }
   return{seq,sin};
@@ -552,27 +543,48 @@ function apoyoEditor(p){
   return '<div class="apoed">'+p.nom.map(n=>`<div class="apoi"><div class="apon">${escA(n)}</div><div class="apoc">${['RH','RP','MOTO','OTROS'].map((l,k)=>k<3?`<label>${l}<input class="apoin" inputmode="numeric" placeholder="00" data-n="${escA(n)}" data-k="${k}" value="${(mem[n]||[])[k]>0?mem[n][k]:''}"></label>`:`<label class="apot">${l} (TEXTO)<input class="apoin" type="text" placeholder="EJ: 1 CAMIÓN" data-n="${escA(n)}" data-k="3" value="${escA(typeof (mem[n]||[])[3]==='string'?mem[n][3]:'')}"></label>`).join('')}</div></div>`).join('')+'</div>';
 }
 function pagHtml(p){return p.apoyo?`<div class="apoTot">${eliteFilas(p.rows)}</div>`+apoyoEditor(p):eliteFilas(p.rows)}
+let eliteSin=[];
+function eliteVistaHtml(){
+  return eliteSeq.map(p=>`<div class="epag">PÁGINA ${p.pag} · ${escA(p.t)}</div>${pagHtml(p)}`).join('')
+    +(eliteSin.length?`<div class="rojo">PÁGINAS SIN DATOS (DESDE LA 6): ${escA(eliteSin.join(' · '))}</div>`:'');
+}
 function eliteRender(txt){
   const card=$('eliteCard');
-  if(!txt){apoyoVisto=null;eliteTxt='';eliteSeq=[];card.hidden=true;eliteCerrar();return}
+  if(!txt){apoyoVisto=null;eliteTxt='';eliteSeq=[];eliteSin=[];card.hidden=true;eliteCerrar();return}
   eliteTxt=txt;
-  const r=eliteArmar(txt);eliteSeq=r.seq;
-  $('eliteVista').innerHTML=r.seq.map(p=>`<div class="epag">PÁGINA ${p.pag} · ${escA(p.t)}</div>${pagHtml(p)}`).join('')
-    +(r.sin.length?`<div class="rojo">PÁGINAS SIN DATOS (DESDE LA 6): ${escA(r.sin.join(' · '))}</div>`:'');
+  const r=eliteArmar(txt);eliteSeq=r.seq;eliteSin=r.sin;
+  $('eliteVista').innerHTML=eliteVistaHtml();
   card.hidden=false;
-  if(!$('eliteModal').hidden){eliteIdx=Math.min(eliteIdx,eliteSeq.length-1);eliteModal()}
+  if(flotOn())eliteModal();
 }
+/* La ventana aparte muestra todas las páginas en vertical, igual que en la app: sin Siguiente */
 function eliteModal(){
-  const p=eliteSeq[eliteIdx];if(!p)return;
-  $('eHd').textContent='PÁGINA '+p.pag+' · '+p.t+'  ('+(eliteIdx+1)+'/'+eliteSeq.length+')';
-  $('eBd').innerHTML=pagHtml(p);
-  $('eAtras').disabled=eliteIdx===0;
-  $('eSig').textContent=eliteIdx===eliteSeq.length-1?'Terminar':'Siguiente';
+  if(!flotOn())return;
+  const bd=$('eBd'),y=bd.scrollTop;
+  $('eHd').textContent='LLENAR ÉLITE · '+eliteSeq.length+' PÁGINAS';
+  bd.innerHTML=eliteVistaHtml();bd.scrollTop=y;
 }
-function eliteCerrar(){$('eliteModal').hidden=true;document.body.classList.remove('sheetOn','minOn')}
-function eliteMin(){const m=$('eliteModal'),x=!m.classList.contains('min');m.classList.toggle('min',x);document.body.classList.toggle('minOn',x)}
-function eliteAbrir(){if(!eliteSeq.length)return;eliteIdx=0;$('eliteModal').classList.remove('min');document.body.classList.remove('minOn');document.body.classList.add('sheetOn');$('eliteModal').hidden=false;eliteModal()}
-$('eGrab').onclick=eliteMin;$('eHd').onclick=eliteMin;
+function eliteCerrar(){if(flotOn()){try{flot.close()}catch(e){}}flot=null}
+/* Los datos del élite se abren en una ventana/pestaña aparte del navegador (flotante siempre que el navegador lo permita) */
+function flotMontar(w){
+  const d=w.document;
+  d.open();d.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Llenar élite</title></head><body></body></html>');d.close();
+  document.querySelectorAll('style').forEach(st=>d.head.appendChild(st.cloneNode(true)));
+  d.body.style.margin='0';
+  d.body.innerHTML='<div class="fw"><div class="hd" id="eHd"></div><div class="bd" id="eBd"></div><div class="ft"><button class="tonal" id="eCerrar">Cerrar</button></div></div><div class="snack" id="snack"></div>';
+  d.getElementById('eCerrar').onclick=eliteCerrar;
+  d.addEventListener('click',onClickCopiar);d.addEventListener('input',onInputApo);
+  w.addEventListener('pagehide',()=>{if(flot===w)flot=null});
+}
+async function eliteAbrir(){
+  if(!eliteSeq.length)return;
+  if(flotOn()){flot.focus();eliteModal();return}
+  let w=null;
+  try{if(window.documentPictureInPicture)w=await documentPictureInPicture.requestWindow({width:420,height:680})}catch(e){w=null}
+  if(!w){const L=Math.max(0,(screen.availLeft||0)+(screen.availWidth||800)-450);w=window.open('','despachoElite','popup=yes,width=420,height=680,left='+L+',top=40')}
+  if(!w){snack('Permite las ventanas emergentes para abrir el élite');return}
+  flot=w;flotMontar(w);eliteModal();
+}
 
 /* ---------- Corte de control y plantilla circular: solo lo que tiene datos ---------- */
 const DIV=/^[━─—_=\-]{5,}$/;
@@ -690,29 +702,30 @@ document.addEventListener('input',e=>{
   const t=e.target;if(t.tagName!=='TEXTAREA')return;
   mayus(t);auto(t);if(t===$('despachador')){try{localStorage.setItem('despachador',t.value)}catch(e){}}if(t===$('despachador')){filaRender();if(eliteTxt)eliteRender(eliteTxt)}if(t===pl)armar();
 });
-document.addEventListener('input',e=>{
+function onInputApo(e){
   const t=e.target;if(!t.classList||!t.classList.contains('apoin'))return;
   const n=t.dataset.n,k=+t.dataset.k,mem=apoyoLoad();
   if(k<3)t.value=t.value.replace(/\D/g,'').slice(0,4);else t.value=t.value.toUpperCase().slice(0,80);
   if(!mem[n])mem[n]=[0,0,0,''];mem[n][k]=k<3?(parseInt(t.value,10)||0):t.value;apoyoSave(mem);
-  document.querySelectorAll('.apoin').forEach(o=>{if(o!==t&&o.dataset.n===n&&+o.dataset.k===k)o.value=t.value});
-  const p=eliteSeq.find(x=>x.apoyo);if(p){p.rows=apoyoRows(p.nom);document.querySelectorAll('.apoTot').forEach(c=>{c.innerHTML=eliteFilas(p.rows)})}
-});
+  const docs=flotOn()?[document,flot.document]:[document];
+  docs.forEach(D=>D.querySelectorAll('.apoin').forEach(o=>{if(o!==t&&o.dataset.n===n&&+o.dataset.k===k)o.value=t.value}));
+  const p=eliteSeq.find(x=>x.apoyo);if(p){p.rows=apoyoRows(p.nom);docs.forEach(D=>D.querySelectorAll('.apoTot').forEach(c=>{c.innerHTML=eliteFilas(p.rows)}))}
+}
+document.addEventListener('input',onInputApo);
 async function copiar(id){
   const t=$(id).value;if(!t.trim()){snack('Nada que copiar');return}
   try{await navigator.clipboard.writeText(t)}catch(e){const el=$(id);el.select();document.execCommand('copy')}
   snack('Copiado');
 }
-document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(b)copiar(b.dataset.copy);const c=e.target.closest('[data-cp]');if(c)copiarTexto(c.dataset.cp)});
+function onClickCopiar(e){const b=e.target.closest('[data-copy]');if(b)copiar(b.dataset.copy);const c=e.target.closest('[data-cp]');if(c)copiarTexto(c.dataset.cp)}
+document.addEventListener('click',onClickCopiar);
 async function copiarTexto(t){
   if(!t||t==='—'){snack('Nada que copiar');return}
-  try{await navigator.clipboard.writeText(t)}catch(e){const el=document.createElement('textarea');el.value=t;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el)}
+  const W=flotOn()?flot:window;
+  try{await W.navigator.clipboard.writeText(t)}catch(e){const D=W.document,el=D.createElement('textarea');el.value=t;D.body.appendChild(el);el.select();D.execCommand('copy');D.body.removeChild(el)}
   snack('Copiado');
 }
 $('eliteBtn').onclick=eliteAbrir;
-$('eCerrar').onclick=()=>{eliteCerrar()};
-$('eAtras').onclick=()=>{if(eliteIdx>0){eliteIdx--;eliteModal()}};
-$('eSig').onclick=()=>{if(eliteIdx<eliteSeq.length-1){eliteIdx++;eliteModal()}else eliteCerrar()};
 $('pegar').onclick=async()=>{
   try{const t=await navigator.clipboard.readText();pl.value=t.toUpperCase();armar();plCol(true);plSync();snack('Pegado')}
   catch(e){pl.focus();snack('Permite el acceso al portapapeles o pega manualmente')}
