@@ -33,6 +33,21 @@ textarea{width:100%;min-height:56px;resize:none;overflow:hidden;display:block;ba
 .apoc label{flex:1;font-size:11px;color:var(--primary);display:flex;flex-direction:column;gap:2px}
 .apoin{width:100%;height:36px;box-sizing:border-box;border:1px solid var(--outline);border-radius:4px;background:transparent;color:var(--on-surface);font:inherit;font-size:16px;text-align:center}
 textarea.col{height:56px!important;white-space:pre;overflow:hidden}
+.xgrid{max-height:360px;overflow:auto;border:1px solid var(--outline);border-radius:4px;padding:10px 6px 6px}
+.xt{border-collapse:collapse;width:100%;font-size:12px}
+.xt td{border:1px solid var(--div);padding:4px 6px;color:var(--on-surface)}
+.xg{font-weight:500;background:var(--container);color:var(--on-container)!important;vertical-align:middle}
+.xn{text-align:right;min-width:44px;font-weight:700;outline:none}
+.xn.nz{color:var(--primary)!important}
+.xn:focus{background:var(--container)}
+.chip{height:32px;padding:0 12px;border:1px solid var(--outline);background:transparent;color:var(--on-surface);border-radius:16px;letter-spacing:0;font-size:14px;font-weight:500}
+.chip.sel{background:var(--primary);color:var(--on-primary);border-color:transparent}
+.chip .x{margin-left:8px;opacity:.7;font-size:16px;line-height:1}
+.xt th{border:1px solid var(--div);padding:4px 6px;background:var(--container);color:var(--on-container);font-weight:500;text-align:left;white-space:nowrap;position:sticky;top:-10px}
+#filaGrid td{text-transform:uppercase;min-width:84px;outline:none;vertical-align:top}
+#filaGrid td:focus{background:var(--container)}
+#filaGrid td:nth-child(6){min-width:150px}
+#filaGrid td:nth-child(8){min-width:260px}
 textarea:focus{outline:2px solid var(--primary);outline-offset:-2px;border-color:transparent}
 .chk{position:absolute;right:12px;top:-11px;padding:0 6px;background:var(--surface);color:var(--primary);font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer}
 .chk input{width:18px;height:18px;margin:0;accent-color:var(--primary)}
@@ -47,7 +62,7 @@ svg{width:18px;height:18px;fill:currentColor}
 .snack{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom) + 16px);max-width:400px;margin:auto;background:var(--snack);color:var(--on-snack);padding:14px 16px;border-radius:4px;font-size:14px;box-shadow:var(--sh);opacity:0;pointer-events:none;transition:opacity .2s}
 .snack.on{opacity:1}
 [hidden]{display:none!important}
-#excel{max-height:240px;overflow:auto}
+#excel{max-height:240px;overflow:auto;white-space:pre;text-transform:none;tab-size:4;font-size:13px}
 .mini{height:30px;padding:0 10px;font-size:12px}
 .fw{display:flex;flex-direction:column;height:100vh;background:var(--surface)}
 .fw .hd{padding:14px 16px;font-weight:500;font-size:15px;border-bottom:1px solid var(--div)}
@@ -103,10 +118,33 @@ function bloque(host,id,label){
 [['tipo','Tipo de incidente'],['detalle','Detalle de incidente'],['direccion','Dirección']].forEach(c=>bloque($('campos'),...c));
 bloque($('cierre'),'narracion','Narración de hechos');
 bloque($('filaCard'),'fila','Fila para Excel');
+$('fila').hidden=true;$('fila').insertAdjacentHTML('afterend','<div id="filaGrid" class="xgrid"></div>');
+$('filaCard').insertAdjacentHTML('afterbegin','<div class="field"><label for="recurso">Recurso que atiende incidente</label><input id="recurso" type="text" autocomplete="off" inputmode="text" style="width:100%;box-sizing:border-box;min-height:56px;background:transparent;color:var(--on-surface);border:1px solid var(--outline);border-radius:4px;padding:16px 52px 16px 16px;font:inherit;font-size:16px;text-transform:uppercase"><button class="arrow" id="recTog" aria-label="Mostrar unidades guardadas" style="position:absolute;right:8px;top:12px"><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button></div><div id="recLista" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px" hidden></div>');
+$('fila').parentElement.style.marginTop='24px';
+/* Unidades: las de siempre + las nuevas que se escriban (se guardan en este navegador) */
+const REC0=['3963','3464','2046','1876','3703','3864','2934'];
+const recLoad=()=>{try{const a=JSON.parse(localStorage.getItem('recursos')||'[]');return Array.isArray(a)?a.filter(x=>typeof x==='string'&&x):[]}catch(e){return[]}};
+const recSave=a=>{try{localStorage.setItem('recursos',JSON.stringify(a))}catch(e){}};
+function recPintar(){
+  const cu=recLoad().filter(x=>!REC0.includes(x)),sel=$('recurso').value.trim().toUpperCase();
+  const e=t=>String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  $('recLista').innerHTML=REC0.map(x=>`<button class="chip${x===sel?' sel':''}" data-rec="${e(x)}">${e(x)}</button>`).concat(cu.map(x=>`<button class="chip${x===sel?' sel':''}" data-rec="${e(x)}">${e(x)}<span class="x" data-del="${e(x)}" aria-label="Quitar">×</span></button>`)).join('');
+}
+$('recTog').onclick=()=>{const o=$('recLista');o.hidden=!o.hidden;$('recTog').classList.toggle('abierto',!o.hidden);if(!o.hidden)recPintar()};
+$('recLista').addEventListener('click',e=>{
+  const d=e.target.closest('[data-del]');
+  if(d){recSave(recLoad().filter(x=>x!==d.dataset.del));if($('recurso').value.trim().toUpperCase()===d.dataset.del){$('recurso').value='';filaRender()}recPintar();return}
+  const b=e.target.closest('[data-rec]');if(!b)return;
+  $('recurso').value=b.dataset.rec;filaRender();$('recLista').hidden=true;$('recTog').classList.remove('abierto');
+});
+$('recurso').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase();filaRender();if(!$('recLista').hidden)recPintar()});
+$('recurso').addEventListener('change',e=>{const v=e.target.value.trim().toUpperCase();e.target.value=v;if(v&&!REC0.includes(v)&&!recLoad().includes(v))recSave(recLoad().concat(v));if(!$('recLista').hidden)recPintar()});
+$('filaGrid').addEventListener('input',()=>{$('fila').value=[...$('filaGrid').querySelectorAll('td')].map(td=>td.textContent.replace(/[\t\r\n]+/g,' ').trim().toUpperCase()).join('\t')});
+$('resultado').insertAdjacentHTML('beforeend','<div id="xlsWrap" hidden><div class="field"><label>Excel</label><div id="xlsGrid" class="xgrid"></div></div><div class="row"><button class="tonal" data-copy="excel">'+ICON+'Copiar</button></div><textarea id="excel" hidden></textarea></div>');
+$('xlsGrid').addEventListener('input',()=>{$('excel').value='\n'.repeat(11)+[...$('xlsGrid').querySelectorAll('[data-i]')].map(td=>td.textContent.trim()).join('\n')});
 bloque($('resultado'),'salida','Resultado');
-$('resultado').insertAdjacentHTML('beforeend','<div id="xlsWrap" style="margin-top:24px" hidden></div>');
-bloque($('xlsWrap'),'excel','Columna para Excel');
-$('xlsWrap').insertAdjacentHTML('beforeend','<div id="leyenda" style="font-size:12px;color:var(--on-surface);margin:10px 4px 0;white-space:pre-line"></div><div id="sinFila" style="font-size:12px;color:var(--primary);margin:10px 4px 0"></div>');
+$('salida').parentElement.nextElementSibling.insertAdjacentHTML('beforeend','<button class="arrow" id="salTog" aria-label="Mostrar u ocultar plantilla" hidden><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>');
+$('resultado').insertAdjacentHTML('beforeend','<div id="notasWrap" hidden><div class="row"><button class="arrow" id="notasTog" aria-label="Mostrar u ocultar avisos"><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button></div><div id="notas" hidden><div id="leyenda" style="font-size:12px;color:var(--on-surface);margin:10px 4px 0;white-space:pre-line"></div><div id="sinFila" style="font-size:12px;color:var(--primary);margin:10px 4px 0"></div></div></div>');
 $('direccion').parentElement.insertAdjacentHTML('beforeend','<label class="chk"><input type="checkbox" id="dirPre" checked>Dirección predeterminada</label>');
 let lastLugar='';
 function dirRender(){
@@ -176,6 +214,7 @@ function fmtCantidad(s=''){
   let item=t.replace(d,' ').replace(/\s+/g,' ').trim().replace(/\bDE$/,'').replace(/^DE\b/,'').trim();
   return item?item+' DE '+d:d;
 }
+let lastEsp='';
 function armar(){
   const txt=$('plantilla').value;
   const nT=norm(txt),circ=/PLANTILLA CIRCULAR/.test(nT),nuevo=/DELEGACIONES/.test(nT)&&/ABORDAJES/.test(nT),cdc=!nuevo&&/CORTE DE CONTROL/.test(nT),eli=!circ&&(/ELITE/.test(nT)||nuevo);
@@ -183,11 +222,14 @@ function armar(){
   eliteRender(eli?txt:null);
   vista(txt.trim()?esp:null);
   if(esp){lastV=null;filaRender();
-    $('salida').value=esp==='CORTE ELITE'?'':filtrar(txt);auto($('salida'));
+    $('salida').value=esp==='CORTE ELITE'?'':filtrar(txt);
+    if(esp==='PLANTILLA CIRCULAR'){if(lastEsp!==esp)salCol(true)}else{$('salida').classList.remove('col');$('salTog').classList.remove('abierto')}
+    lastEsp=esp;auto($('salida'));
     const x=esp==='PLANTILLA CIRCULAR'?excel(txt):null;
-    $('xlsWrap').hidden=!x;
-    if(x){$('excel').value=x.col;auto($('excel'));$('leyenda').textContent=x.fil.length?'LEYENDA (FILA DEL EXCEL: CANTIDAD)\n'+x.fil.join('\n'):'';$('sinFila').textContent=x.sin.length?'SIN FILA EN EXCEL: '+x.sin.join(' | '):''}
+    $('xlsWrap').hidden=!x;$('notasWrap').hidden=!x||(!x.fil.length&&!x.av.length&&!x.sin.length);
+    if(x){$('excel').value=x.col;xlsRender(x);$('leyenda').textContent=[x.fil.length?'LEYENDA (FILA DEL EXCEL: CANTIDAD)\n'+x.fil.join('\n'):'',x.av.length?'⚠ REVISAR EN EL EXCEL:\n'+x.av.join('\n'):''].filter(Boolean).join('\n\n');$('sinFila').textContent=x.sin.length?'SIN FILA EN EXCEL: '+x.sin.join(' | '):''}
     return}
+  lastEsp='';
   const v=leer(txt);
   const up=s=>(s||'').toUpperCase().replace(/\s+/g,' ').trim();
   const lugar=up(v.lugar),nom=up(v.nombre);
@@ -238,11 +280,11 @@ function sitDroga(c){
 }
 function filaRender(){
   const card=$('filaCard');
-  if(!lastV){card.hidden=true;$('fila').value='';return}
+  if(!lastV){card.hidden=true;$('fila').value='';$('filaGrid').innerHTML='';return}
   const v=lastV,up=s=>(s||'').toUpperCase().replace(/\s+/g,' ').trim();
   const f=fmtFecha(v.fecha).replace(/-/g,'/'),h=fmtHora(v.hora);
   const nom=up(v.nombre),ced=(v.cedula||'').replace(/[^\dA-Za-z]/g,'').toUpperCase();
-  const mov=(String(v.movil||'').match(/\d+/)||[''])[0];
+  const mov=($('recurso').value||'').trim().toUpperCase()||(String(v.movil||'').match(/\d+/)||[''])[0];
   const of=v.ofs?v.ofs.split('\n').map(up).filter(Boolean).join('/'):[up(v.of1),up(v.of2)].filter(Boolean).join('/');
   let sit;
   if(/^DECOMISO DE DROGA/.test($('tipo').value.trim())){
@@ -251,8 +293,11 @@ function filaRender(){
     sit=a.join(' ');
   }else sit=$('detalle').value.trim();
   const cols=[f,h?h+':00':'','RECORRIDO',$('tipo').value.trim(),mov,of,up(v.lugar),sit,$('despachador').value.trim()];
-  $('fila').value=cols.map(x=>String(x).replace(/[\t\r\n]+/g,' ').toUpperCase()).join('\t');
-  auto($('fila'));card.hidden=false;
+  const cv=cols.map(x=>String(x).replace(/[\t\r\n]+/g,' ').toUpperCase());
+  $('fila').value=cv.join('\t');
+  const TIT=['FECHA','HORA','METODO INGRESO','INCIDENTE/CODIGO','RECURSO QUE ATIENDE INCIDENTE','OFICIALES (ACTUANTE Y ASISTENTE)','UBICACIÓN','SITUACIÓN','DESPACHADOR'];
+  $('filaGrid').innerHTML='<table class="xt"><tr>'+TIT.map(t=>`<th>${t}</th>`).join('')+'</tr><tr>'+cv.map(c=>`<td contenteditable="true">${escA(c)}</td>`).join('')+'</tr></table>';
+  card.hidden=false;
 }
 
 /* ---------- Corte ÉLITE: formulario de 17 páginas (solo páginas 3 y 6 a 16 con datos) ---------- */
@@ -377,7 +422,7 @@ function eliteParse(txt){
       if(eMatch(ELITE[si].f[fi],label)){add(si,fi,eNum(val));return true}
     return false;
   };
-  const dre=/^(\d+(?:[.,]\d+)?)\s*(GRAMOS?|GRS?|KILOS?|KGS?|CIGARROS?|PUCHOS?|TOCOLAS?|PLANTAS?|SEMILLAS?|PUNTAS?|PIEDRAS?)\b(.*)$/;
+  const dre=/^(\d+(?:[.,]\d+)?)\s*(GRAMOS?|GRS?|KILOS?|KGS?|CIGARRILLOS?|CIGARROS?|PUCHOS?|TOCOLAS?|PLANTAS?|SEMILLAS?|PUNTAS?|PIEDRAS?)\b(.*)$/;
   let prev='';
   for(const raw of txt.replace(/\r/g,'').split('\n')){
     const l=sinAst(raw).trim();if(!l)continue;
@@ -388,7 +433,7 @@ function eliteParse(txt){
     const nl=norL(l);
     if((m=norm(sinAst(l)).match(dre))){
       const u=m[2],t=/COCAINA/.test(nl)?'coc':/CRACK/.test(nl)?'crk':'mar';
-      const k=/^GR/.test(u)?t+'_g':/^(KILO|KG)/.test(u)?t+'_k':/^CIGARRO/.test(u)?'mar_c':/^PUCHO/.test(u)?'mar_p':/^TOCOLA/.test(u)?'mar_t':/^PLANTA/.test(u)?'mar_pl':/^SEMILLA/.test(u)?'mar_s':/^PUNTA/.test(u)?'coc_pu':'crk_pi';
+      const k=/^GR/.test(u)?t+'_g':/^(KILO|KG)/.test(u)?t+'_k':/^CIGARR/.test(u)?'mar_c':/^PUCHO/.test(u)?'mar_p':/^TOCOLA/.test(u)?'mar_t':/^PLANTA/.test(u)?'mar_pl':/^SEMILLA/.test(u)?'mar_s':/^PUNTA/.test(u)?'coc_pu':'crk_pi';
       if(KMAP[k])add(KMAP[k][0],KMAP[k][1],eNum(m[1]));
       prev='';continue;
     }
@@ -535,18 +580,18 @@ function eliteArmar(txt){
   }
   return{seq,sin};
 }
-function eliteFilas(rows){return rows.map(r=>{const big=String(r[1]).length>14||/\n/.test(r[1]);
+function eliteFilas(rows,forzar){return rows.map(r=>{const big=forzar||String(r[1]).length>14||/\n/.test(r[1]);
   const v=escA(r[1]).replace(/\n/g,'&#10;'),dsp=r[2]!==undefined?r[2]:r[1];
   return `<div class="erow"${big?' style="align-items:flex-start;flex-wrap:wrap"':''}><span class="l">${escA(r[0])}</span>${r[1]!==''?`<button class="tonal mini" data-cp="${v}">Copiar</button>`:''}${r[1]!==''?`<span class="v" style="${big?'flex-basis:100%;text-align:left;font-weight:400;white-space:pre-wrap;order:3':''}">${escA(dsp)}</span>`:''}</div>`}).join('')}
 function apoyoEditor(p){
   const mem=apoyoLoad();
   return '<div class="apoed">'+p.nom.map(n=>`<div class="apoi"><div class="apon">${escA(n)}</div><div class="apoc">${['RH','RP','MOTO','OTROS'].map((l,k)=>k<3?`<label>${l}<input class="apoin" inputmode="numeric" placeholder="00" data-n="${escA(n)}" data-k="${k}" value="${(mem[n]||[])[k]>0?mem[n][k]:''}"></label>`:`<label class="apot">${l} (TEXTO)<input class="apoin" type="text" placeholder="EJ: 1 CAMIÓN" data-n="${escA(n)}" data-k="3" value="${escA(typeof (mem[n]||[])[3]==='string'?mem[n][3]:'')}"></label>`).join('')}</div></div>`).join('')+'</div>';
 }
-function pagHtml(p){return p.apoyo?`<div class="apoTot">${eliteFilas(p.rows)}</div>`+apoyoEditor(p):eliteFilas(p.rows)}
+function pagHtml(p){return p.apoyo?`<div class="apoTot">${eliteFilas(p.rows)}</div>`+apoyoEditor(p):eliteFilas(p.rows,p.pag==='3')}
 let eliteSin=[];
 function eliteVistaHtml(){
   return eliteSeq.map(p=>`<div class="epag">PÁGINA ${p.pag} · ${escA(p.t)}</div>${pagHtml(p)}`).join('')
-    +(eliteSin.length?`<div class="rojo">PÁGINAS SIN DATOS (DESDE LA 6): ${escA(eliteSin.join(' · '))}</div>`:'');
+    +(eliteSin.length?`<div class="row" style="margin-top:6px"><button class="arrow" data-tg aria-label="Mostrar páginas sin datos"><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button></div><div class="rojo" style="margin-top:0" hidden>PÁGINAS SIN DATOS (DESDE LA 6): ${escA(eliteSin.join(' · '))}</div>`:'');
 }
 function eliteRender(txt){
   const card=$('eliteCard');
@@ -649,12 +694,12 @@ const ETQ=["Aprehensiones por contravención – Contra las personas","Aprehensi
 /* Drogas: filas del Excel por tipo y unidad (gramos/kilos sin droga indicada = marihuana) */
 const DR={MAR:{GRAMOS:39,KILOS:40,CIGARROS:41,PUCHOS:42,TOCOLAS:43,PLANTAS:44,SEMILLAS:45},COC:{GRAMOS:46,KILOS:47,PUNTAS:48},CRK:{GRAMOS:49,PIEDRAS:50},OTR:{EXTASIS:51,HEROINA:52,ANFETAMINAS:53}};
 function drogas(lines,col){
-  const sobra=[],re=/(\d+(?:[.,]\d+)?)\s*(GRAMOS?|GRS?\b|KILOS?|KGS?\b|CIGARROS?|PUCHOS?|TOCOLAS?|PLANTAS?|SEMILLAS?|PUNTAS?|PIEDRAS?|EXTASIS|HEROINA|ANFETAMINAS?)/g;
+  const sobra=[],re=/(\d+(?:[.,]\d+)?)\s*(GRAMOS?|GRS?\b|KILOS?|KGS?\b|CIGARRILLOS?|CIGARROS?|PUCHOS?|TOCOLAS?|PLANTAS?|SEMILLAS?|PUNTAS?|PIEDRAS?|EXTASIS|HEROINA|ANFETAMINAS?)/g;
   for(const raw of lines){
     const l=norm(sinAst(raw));if(!l||vacio(l))continue;
     let hit=false,m;re.lastIndex=0;
     while((m=re.exec(l))){
-      let u=m[2].replace(/^GRS?$/,'GRAMOS').replace(/^KGS?$/,'KILOS').replace(/S$/,'')+'S';
+      let u=m[2].replace(/^GRS?$/,'GRAMOS').replace(/^KGS?$/,'KILOS').replace(/^CIGARRILLOS?$/,'CIGARROS').replace(/S$/,'')+'S';
       if(u==='EXTASIS')u='EXTASIS';if(u==='HEROINAS')u='HEROINA';
       const d=/COCAINA/.test(l)?'COC':/CRACK/.test(l)?'CRK':/HEROINA|EXTASIS|ANFETAMINA/.test(u+l)&&(u==='HEROINA'||u==='EXTASIS'||u==='ANFETAMINAS')?'OTR':'MAR';
       const grp=u==='PUNTAS'?'COC':u==='PIEDRAS'?'CRK':(u==='EXTASIS'||u==='HEROINA'||u==='ANFETAMINAS')?'OTR':d;
@@ -665,8 +710,17 @@ function drogas(lines,col){
   }
   return sobra;
 }
+const sumar=(col,r,n)=>{const q=parseFloat(String(n).replace(',','.'))||0;if(q>0)col[r]=String(Math.round(((parseFloat(col[r])||0)+q)*1000)/1000)};
+const TBL=[["Aprehensiones por contravencion", ["Contra las personas", "Contra la propiedad y el patrimonio", "Contra el orden publico", "Contra las buenas costumbres", "Contra inviolab. Terrenos", "Contra seguridad publica"]], ["Detenidos por comision de delitos- ANOTAR CANTIDAD DE LA JORNADA  Y Anotar los datos de cada uno en el cuadro de abajo)", [""]], ["Aprehendidos por migracion", ["Residente", "Citas", "Decomisos de pasaporte", "Rechazos", "Aprehensiones por migracion"]], ["Decomisos de armas blancas", ["Punzocortantes"]], ["Decomisos de armas de fuego", ["Pistola balines"]], ["Armas no letales", ["Pistola balas de goma", "Rifle de copas", "Armas de imitacion"]], ["Armas de fuego", ["Pistola", "Revolver", "Arma larga", "Escopeta", "Subametralladora", "Hechizas"]], ["Municion", ["Balas", "Cargadores"]], ["Polvora", ["Fuegos artificiales", "Otro tipo"]], ["Decomiso de automoviles", ["Por OIJ o denuncia de robo", "Por policia de Transito", "Por piques", "Recuperado (Hallazgo)", "Solo boletas de transito", "Boletas y placas decomisadas"]], ["Decomiso de motocicletas", ["Por OIJ o denuncia de robo", "Por policia de Transito", "Por piques", "Recuperado (Hallazgo)", "Solo boletas de transito", "Boletas y placas decomisadas"]], ["Decomiso de droga marihuana", ["Gramos", "Kilos", "Cigarros", "Puchos", "Tocolas", "Plantas", "Semillas"]], ["Decomiso de cocaina", ["Gramos", "Kilos", "Puntas"]], ["Decomiso de crack", ["Gramos", "Piedras"]], ["Decomiso de otras drogas", ["Extasis", "Heroína", "Anfetaminas", "Otras"]], ["Decomiso de animales", ["Bovinos", "Porcinos", "Equinos", "Aves", "Otros (Reptile y anfibios)"]], ["Decomiso de licores", ["Litros", "Pachas", "Botellas", "Latas"]], ["Decomiso de dinero", ["Colones", "Dolares", "Euros", "Otros"]], ["Decomiso de alimentos", ["Pescado kg", "Carne kg", "Queso kg", "Granos"]], ["Decomiso de medicamentos", ["Pastillas", "Cremas", "Jarabes"]], ["Decomiso de madera", ["Tucas/trozos"]], ["Decomiso de mercaderia", ["Ropa/perfumes/zapatos/otros"]], ["Investigados", ["Personas", "Vehiculos", "Motos", "Furgones/camiones", "Agentes de seguridad", "Armas de fuego"]], ["Locales", ["Comerciales clausurados", "Habitacionales clausurados"]], ["Controles de carretera", [""]]];
+function xlsRender(x){
+  let h='<table class="xt">',i=0;
+  TBL.forEach(([g,sub])=>{const solo=sub.length===1&&sub[0]==='';
+    sub.forEach((n,j)=>{const v=x.cols[i];
+      h+='<tr>'+(j?'':`<td class="xg" rowspan="${sub.length}"${solo?' colspan="2"':''}>${escA(g)}</td>`)+(solo?'':`<td>${escA(n)}</td>`)+`<td class="xn${v!=='0'?' nz':''}" contenteditable="true" inputmode="decimal" data-i="${i}">${escA(v)}</td></tr>`;i++})});
+  $('xlsGrid').innerHTML=h+'</table>';
+}
 function excel(txt){
-  const col=Array(FILAS).fill('0'),sin=[];
+  const col=Array(FILAS).fill('0'),sin=[],av=[];
   for(const b of bloques(txt.replace(/\r/g,'').split('\n'))){
     b.ps.forEach((p,i)=>{
       const e=etiqueta(p.t);if(!e)return;
@@ -675,19 +729,46 @@ function excel(txt){
       if(vacio(v)&&!cuerpo.length)return;
       if(k in XLS){col[XLS[k]]=/^\d+$/.test(v)?String(+v):v;return}
       if(k==='DECOMISOS DE DROGAS'){const so=drogas([v,...cuerpo],col);if(so.length)sin.push(k+': '+so.join(' / '));return}
+      if(/^(MARIHUANA|COCAINA|CRACK)$/.test(k)){const so=drogas([v,...cuerpo].filter(Boolean).map(x=>new RegExp(k).test(norm(sinAst(x)))?x:x+' '+k),col);if(so.length)sin.push(k+': '+so.join(' / '));return}
+      if(k==='ARMAS NO LETALES'){
+        const r=[];cuerpo.forEach(x=>{const q=norm(sinAst(x)),m=q.match(/^(\d+(?:[.,]\d+)?)\s+(.*)$/);
+          const f=m&&(/BALIN/.test(m[2])?13:/GOMA/.test(m[2])?14:/COPAS?/.test(m[2])?15:/IMITACION/.test(m[2])?16:0);
+          if(f)sumar(col,f,m[1]);else r.push(x)});
+        if(!cuerpo.length||!cuerpo.some(x=>/^\d/.test(x)))sumar(col,16,v);
+        if(r.length&&cuerpo.length&&cuerpo.some(x=>/^\d/.test(x)))sin.push(k+': '+r.join(' / '));
+        return}
+      if(k==='ARMAS DE FUEGO'){
+        const r=[];cuerpo.forEach(x=>{const q=norm(sinAst(x)),m=q.match(/^(\d+(?:[.,]\d+)?)\s+(.*)$/);
+          if(m&&/^ARMAS? BLANCAS?/.test(m[2])&&col[12]!=='0')return;
+          const f=m&&(/HECHIZ/.test(m[2])?22:/BALIN/.test(m[2])?13:/PISTOLA/.test(m[2])?17:/REVOLVER/.test(m[2])?18:/ARMA LARGA|FUSIL|RIFLE/.test(m[2])?19:/ESCOPETA/.test(m[2])?20:/SUBAMETRALLADORA/.test(m[2])?21:0);
+          if(f)sumar(col,f,m[1]);else r.push(x)});
+        if(r.length||(!vacio(v)&&!cuerpo.length))sin.push(k+(vacio(v)?'':': '+v)+(r.length?(vacio(v)?': ':' / ')+r.join(' / '):''));
+        return}
+      if(k==='REPORTE POLVORA'){sumar(col,25,v);return}
+      if(k==='POR CONTRAVENCIONES'){sumar(col,0,v);av.push('POR CONTRAVENCIONES ('+String(+v)+'): la plantilla no dice el tipo. Quedó todo en "Aprehensiones por contravención – Contra las personas". Si fue contra la propiedad, el orden público, las buenas costumbres, inviolabilidad de terrenos o seguridad pública, cámbialo a esa fila en el Excel.');return}
+      if(k==='DECOMISOS DE AUTOMOVILES Y MOTOS'){
+        let sp=false;cuerpo.forEach(x=>{const q=norm(sinAst(x)),m=q.match(/^(\d+(?:[.,]\d+)?)\s+(.*)$/);
+          if(m&&/MOTO/.test(m[2])){sumar(col,33,m[1]);sp=true}else if(m&&/AUTOMOVIL|VEHICULO|CARRO/.test(m[2])){sumar(col,27,m[1]);sp=true}else sin.push(k+': '+x)});
+        if(!sp&&!vacio(v)){sumar(col,27,v);av.push('DECOMISOS DE AUTOMÓVILES Y MOTOS ('+String(+v)+'): la plantilla no separa autos y motos ni dice el motivo. Quedó todo en "Decomiso de automóviles – Por OIJ o denuncia de robo". Si son motos, pásalo a "Decomiso de motocicletas – Por OIJ o denuncia de robo"; si fue por tránsito, piques, hallazgo o boletas, cámbialo a esa fila en el Excel.')}
+        else if(sp)av.push('DECOMISOS DE AUTOMÓVILES Y MOTOS: el motivo no viene en la plantilla; quedó en "Por OIJ o denuncia de robo". Si fue por tránsito, piques, hallazgo o boletas, cámbialo a esa fila en el Excel.');
+        return}
       if(SIN_FILA.includes(k))return;
       sin.push(k+(v?': '+v:'')+(cuerpo.length?(v?' / ':': ')+cuerpo.join(' / '):''));
     });
   }
   const fil=col.map((v,i)=>v&&v!=='0'?ETQ[i]+': '+v:'').filter(Boolean);
   /* 11 filas de encabezado del Excel (ministerio ... INDICADORES) quedan en blanco: 11 + 86 = 97 filas */
-  return{col:'\n'.repeat(11)+col.join('\n'),sin,fil};
+  return{col:'\n'.repeat(11)+col.join('\n'),cols:col,sin,fil,av};
 }
 function vista(esp){
   const ninguno=esp===null;
   ['campos','cierre','divCierre'].forEach(i=>$(i).hidden=ninguno||!!esp);
   $('resultado').hidden=ninguno||!esp||esp==='CORTE ELITE';
-  if(esp)document.querySelector('label[for="salida"]').textContent=esp;
+  const circ=esp==='PLANTILLA CIRCULAR';
+  $('salTog').hidden=!circ;
+  const sr=$('salida').parentElement.nextElementSibling;sr.style.justifyContent=circ?'space-between':'flex-end';sr.style.alignItems='center';
+  if(esp)document.querySelector('label[for="salida"]').textContent=circ?'ELEMENTOS CON DATOS':esp;
+  $('salida').parentElement.style.marginTop=circ?'24px':'';
 }
 
 /* ---------- Eventos ---------- */
@@ -695,12 +776,16 @@ function mayus(el){const a=el.selectionStart,b=el.selectionEnd;const u=el.value.
 const pl=$('plantilla');
 function plCol(c){pl.classList.toggle('col',c);if(c)pl.scrollTop=0;$('plTog').classList.toggle('abierto',!c);auto(pl)}
 function plSync(){}
+function salCol(c){const o=$('salida');o.classList.toggle('col',c);if(c)o.scrollTop=0;$('salTog').classList.toggle('abierto',!c);auto(o)}
+const esCirc=()=>/PLANTILLA CIRCULAR/.test(norm(pl.value));
+$('salTog').onclick=()=>salCol(!$('salida').classList.contains('col'));
+$('notasTog').onclick=()=>{const o=$('notas');o.hidden=!o.hidden;$('notasTog').classList.toggle('abierto',!o.hidden)};
 $('plTog').onclick=()=>plCol(!pl.classList.contains('col'));
 pl.addEventListener('input',plSync);
-pl.addEventListener('paste',()=>setTimeout(()=>{plCol(true);plSync()},0));
+pl.addEventListener('paste',()=>setTimeout(()=>{plCol(true);if(esCirc())salCol(true);plSync()},0));
 document.addEventListener('input',e=>{
   const t=e.target;if(t.tagName!=='TEXTAREA')return;
-  mayus(t);auto(t);if(t===$('despachador')){try{localStorage.setItem('despachador',t.value)}catch(e){}}if(t===$('despachador')){filaRender();if(eliteTxt)eliteRender(eliteTxt)}if(t===pl)armar();
+  if(t.id!=='excel')mayus(t);auto(t);if(t===$('despachador')){try{localStorage.setItem('despachador',t.value)}catch(e){}}if(t===$('despachador')){filaRender();if(eliteTxt)eliteRender(eliteTxt)}if(t===pl)armar();
 });
 function onInputApo(e){
   const t=e.target;if(!t.classList||!t.classList.contains('apoin'))return;
@@ -714,10 +799,9 @@ function onInputApo(e){
 document.addEventListener('input',onInputApo);
 async function copiar(id){
   const t=$(id).value;if(!t.trim()){snack('Nada que copiar');return}
-  try{await navigator.clipboard.writeText(t)}catch(e){const el=$(id);el.select();document.execCommand('copy')}
-  snack('Copiado');
+  copiarTexto(t);
 }
-function onClickCopiar(e){const b=e.target.closest('[data-copy]');if(b)copiar(b.dataset.copy);const c=e.target.closest('[data-cp]');if(c)copiarTexto(c.dataset.cp)}
+function onClickCopiar(e){const g=e.target.closest('[data-tg]');if(g){const o=g.parentElement.nextElementSibling;if(o){o.hidden=!o.hidden;g.classList.toggle('abierto',!o.hidden)}}const b=e.target.closest('[data-copy]');if(b)copiar(b.dataset.copy);const c=e.target.closest('[data-cp]');if(c)copiarTexto(c.dataset.cp)}
 document.addEventListener('click',onClickCopiar);
 async function copiarTexto(t){
   if(!t||t==='—'){snack('Nada que copiar');return}
@@ -727,7 +811,7 @@ async function copiarTexto(t){
 }
 $('eliteBtn').onclick=eliteAbrir;
 $('pegar').onclick=async()=>{
-  try{const t=await navigator.clipboard.readText();pl.value=t.toUpperCase();armar();plCol(true);plSync();snack('Pegado')}
+  try{const t=await navigator.clipboard.readText();pl.value=t.toUpperCase();armar();plCol(true);if(esCirc())salCol(true);plSync();snack('Pegado')}
   catch(e){pl.focus();snack('Permite el acceso al portapapeles o pega manualmente')}
 };
 $('limpiarDesp').onclick=()=>{
