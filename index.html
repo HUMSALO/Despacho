@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
-<title>Despacho</title>
+<title>Despacho v3</title>
 <style>
 :root{--primary:#1A73E8;--on-primary:#fff;--container:#E8F0FE;--on-container:#174EA6;--bg:#F1F3F4;--surface:#FFFFFF;--on-surface:#202124;--outline:#80868B;--div:#DADCE0;--bar:#FFFFFF;--snack:#323232;--on-snack:#FFFFFF;--sh:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15)}
 @media (prefers-color-scheme:dark){:root{--primary:#8AB4F8;--on-primary:#202124;--container:#394457;--on-container:#D2E3FC;--bg:#202124;--surface:#292A2D;--on-surface:#E8EAED;--outline:#9AA0A6;--div:#3C4043;--bar:#292A2D;--snack:#E8EAED;--on-snack:#202124}}
@@ -35,11 +35,15 @@ svg{width:18px;height:18px;fill:currentColor}
 .snack{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom) + 16px);max-width:400px;margin:auto;background:var(--snack);color:var(--on-snack);padding:14px 16px;border-radius:4px;font-size:14px;box-shadow:var(--sh);opacity:0;pointer-events:none;transition:opacity .2s}
 .snack.on{opacity:1}
 [hidden]{display:none!important}
+#excel{max-height:240px;overflow:auto}
 </style>
 </head>
 <body>
-<header>Despacho <small>v2.0</small></header>
+<header>Despacho <small>v3.0</small></header>
 <main>
+  <section class="card">
+    <div class="field"><label for="despachador">Despachador</label><textarea id="despachador" rows="1"></textarea></div>
+  </section>
   <section class="card">
     <div class="field"><label for="plantilla">Ingresa la plantilla</label><textarea id="plantilla" rows="1"></textarea></div>
     <div class="row">
@@ -52,6 +56,7 @@ svg{width:18px;height:18px;fill:currentColor}
   <section class="card" id="campos"></section>
   <div class="divider" id="divCierre">Cierre de incidente</div>
   <section class="card" id="cierre"></section>
+  <section class="card" id="filaCard" hidden></section>
   <section class="card" id="resultado" hidden></section>
 </main>
 <div class="snack" id="snack"></div>
@@ -69,7 +74,11 @@ function bloque(host,id,label){
 }
 [['tipo','Tipo de incidente'],['detalle','Detalle de incidente'],['direccion','Dirección']].forEach(c=>bloque($('campos'),...c));
 bloque($('cierre'),'narracion','Narración de hechos');
+bloque($('filaCard'),'fila','Fila para Excel');
 bloque($('resultado'),'salida','Resultado');
+$('resultado').insertAdjacentHTML('beforeend','<div id="xlsWrap" style="margin-top:24px" hidden></div>');
+bloque($('xlsWrap'),'excel','Columna para Excel');
+$('xlsWrap').insertAdjacentHTML('beforeend','<div id="leyenda" style="font-size:12px;color:var(--on-surface);margin:10px 4px 0;white-space:pre-line"></div><div id="sinFila" style="font-size:12px;color:var(--primary);margin:10px 4px 0"></div>');
 $('direccion').parentElement.insertAdjacentHTML('beforeend','<label class="chk"><input type="checkbox" id="dirPre" checked>Dirección predeterminada</label>');
 let lastLugar='';
 function dirRender(){
@@ -92,7 +101,11 @@ const SIN={
   tipoAp:['TIPO'],
   bebida:['BEBIDA ALCOHOLICA','BEBIDA','LICOR'],
   hechos:['DESCRIPCION DE LOS HECHOS','DESCRIPCION DE HECHOS','DESCRIPCION'],
-  _otro:['DECOMISO','CARACTERISTICAS','DIRECCION','NACIMIENTO','FECHA DE NACIMIENTO','FECHA NACIMIENTO','OFICIALES','OFICIAL','OFICIAL ACTUANTE','OFICIAL ASISTENTE','OFICIAL RESPONSABLE','OFICIAL A CARGO','OFICIALES ACTUANTES','MOVIL','UNIDAD','GRUPO','NACIONALIDAD','EXPEDIENTE','JUZGADO','CANTON','DISTRITO','CEDULA OFICIAL ACTUANTE','CEDULA OFICIAL ASISTENTE']
+  of1:['OFICIAL ACTUANTE','OFICIAL','OFICIAL RESPONSABLE','OFICIAL A CARGO','ACTUANTE'],
+  of2:['OFICIAL ASISTENTE','ASISTENTE'],
+  ofs:['OFICIALES','OFICIALES ACTUANTES','OFICIALES ACTUANTE Y ASISTENTE'],
+  movil:['MOVIL','UNIDAD','PATRULLA','RECURSO'],
+  _otro:['DECOMISO','CARACTERISTICAS','DIRECCION','NACIMIENTO','FECHA DE NACIMIENTO','FECHA NACIMIENTO','GRUPO','NACIONALIDAD','EXPEDIENTE','JUZGADO','CANTON','DISTRITO','CEDULA OFICIAL ACTUANTE','CEDULA OFICIAL ASISTENTE']
 };
 const MAPA={};for(const k in SIN)SIN[k].forEach(a=>MAPA[a]=k);
 const DROGAS=['MARIHUANA','COCAINA','CRACK','HEROINA','METANFETAMINA','PASTA BASE','HACHIS','EXTASIS','LSD','ANFETAMINA'];
@@ -111,7 +124,7 @@ function leer(texto){
     else if(MAPA[norm(l)]){campo=MAPA[norm(l)];resto=''}
     else if(act==='hechos'||act==='delito'){v[act]+=(act==='hechos'?'\n':' ')+l;continue}
     else if(m){act=null;continue}
-    else{if(act)v[act]=((v[act]||'')+' '+l).trim();continue}
+    else{if(act)v[act]=((v[act]||'')+(act==='ofs'?'\n':' ')+l).trim();continue}
     if(campo!=='_otro'&&v[campo]){act=null;continue}
     act=campo==='_otro'?null:campo;
     if(act){v[act]=v[act]||'';if(resto.trim())v[act]=resto.trim()}
@@ -139,7 +152,12 @@ function armar(){
   const txt=$('plantilla').value;
   const esp=/CORTE DE CONTROL/.test(norm(txt))?'CORTE DE CONTROL':/PLANTILLA CIRCULAR/.test(norm(txt))?'PLANTILLA CIRCULAR':'';
   vista(txt.trim()?esp:null);
-  if(esp){$('salida').value=filtrar(txt);auto($('salida'));return}
+  if(esp){lastV=null;filaRender();
+    $('salida').value=filtrar(txt);auto($('salida'));
+    const x=esp==='PLANTILLA CIRCULAR'?excel(txt):null;
+    $('xlsWrap').hidden=!x;
+    if(x){$('excel').value=x.col;auto($('excel'));$('leyenda').textContent=x.fil.length?'LEYENDA (FILA DEL EXCEL: CANTIDAD)\n'+x.fil.join('\n'):'';$('sinFila').textContent=x.sin.length?'SIN FILA EN EXCEL: '+x.sin.join(' | '):''}
+    return}
   const v=leer(txt);
   const up=s=>(s||'').toUpperCase().replace(/\s+/g,' ').trim();
   const lugar=up(v.lugar),nom=up(v.nombre);
@@ -177,6 +195,34 @@ function armar(){
   lastLugar=lugar;dirRender();
   $('narracion').value=nar;
   ['tipo','detalle','narracion'].forEach(i=>auto($(i)));
+  lastV=txt.trim()?v:null;filaRender();
+}
+
+/* ---------- Fila para Excel (llenado de incidente): 9 columnas separadas por tabulador ---------- */
+let lastV=null;
+function sitDroga(c){
+  const t=fmtCantidad(c||'');if(!t)return'';
+  const m=t.match(/^(.*) DE (MARIHUANA|COCAINA|CRACK|HEROINA|METANFETAMINA|PASTA BASE|HACHIS|EXTASIS|LSD|ANFETAMINA)$/);
+  if(m)return m[1]+' DE APARENTE DROGA '+m[2];
+  return DROGAS.includes(t)?'APARENTE DROGA '+t:t;
+}
+function filaRender(){
+  const card=$('filaCard');
+  if(!lastV){card.hidden=true;$('fila').value='';return}
+  const v=lastV,up=s=>(s||'').toUpperCase().replace(/\s+/g,' ').trim();
+  const f=fmtFecha(v.fecha).replace(/-/g,'/'),h=fmtHora(v.hora);
+  const nom=up(v.nombre),ced=(v.cedula||'').replace(/[^\dA-Za-z]/g,'').toUpperCase();
+  const mov=(String(v.movil||'').match(/\d+/)||[''])[0];
+  const of=v.ofs?v.ofs.split('\n').map(up).filter(Boolean).join('/'):[up(v.of1),up(v.of2)].filter(Boolean).join('/');
+  let sit;
+  if(/^DECOMISO DE DROGA/.test($('tipo').value.trim())){
+    const a=['SE LE DECOMISA A'];if(nom)a.push(nom);if(ced)a.push('CEDULA '+ced);
+    const c=sitDroga(v.cantidad);if(c)a.push(c);
+    sit=a.join(' ');
+  }else sit=$('detalle').value.trim();
+  const cols=[f,h?h+':00':'','RECORRIDO',$('tipo').value.trim(),mov,of,up(v.lugar),sit,$('despachador').value.trim()];
+  $('fila').value=cols.map(x=>String(x).replace(/[\t\r\n]+/g,' ').toUpperCase()).join('\t');
+  auto($('fila'));card.hidden=false;
 }
 
 /* ---------- Corte de control y plantilla circular: solo lo que tiene datos ---------- */
@@ -234,6 +280,48 @@ function filtrar(txt){
   });
   return res.join('\n'+(divOrig||'━━━━━━━━━━━━━━━')+'\n');
 }
+/* Circular -> columna de valores alineada a las filas del Excel (vacío = salta la fila) */
+const FILAS=86,XLS={'POR COMISION DE DELITOS':6,'APREHENSION POR MIGRACION':11,'ARMAS BLANCAS':12,'PERSONAS INVESTIGADAS':77,'VEHICULOS INVESTIGADOS':78,'MOTOS INVESTIGADAS':79,'FURGONES CAMIONES INVESTIGADOS':80,'AGENTES DE SEGURIDAD INVESTIGADOS':81,'ARMAS DE FUEGO INVESTIGADAS':82,'LOCALES COMERCIALES CLAUSURADOS':83,'LOCALES HABITUACIONALES CLAUSURADOS':84,'CONTROLES DE CARRETERA':85};
+const SIN_FILA=['APREHENSIONES','DECOMISOS','POR ORDEN JUDICIAL','POR FLAGRANCIA'];
+/* Títulos de las 86 filas de la tabla INDICADORES (leyenda de la columna) */
+const ETQ=["Aprehensiones por contravención – Contra las personas","Aprehensiones por contravención – Contra la propiedad y el patrimonio","Aprehensiones por contravención – Contra el orden público","Aprehensiones por contravención – Contra las buenas costumbres","Aprehensiones por contravención – Contra inviolab. terrenos","Aprehensiones por contravención – Contra seguridad pública","Detenidos por comisión de delitos","Aprehendidos por migración – Residente","Aprehendidos por migración – Citas","Aprehendidos por migración – Decomisos de pasaporte","Aprehendidos por migración – Rechazos","Aprehendidos por migración – Aprehensiones por migración","Decomisos de armas blancas – Punzocortantes","Decomisos de armas de fuego – Pistola balines","Armas no letales – Pistola balas de goma","Armas no letales – Rifle de copas","Armas no letales – Armas de imitación","Armas de fuego – Pistola","Armas de fuego – Revólver","Armas de fuego – Arma larga","Armas de fuego – Escopeta","Armas de fuego – Subametralladora","Armas de fuego – Hechizas","Munición – Balas","Munición – Cargadores","Pólvora – Fuegos artificiales","Pólvora – Otro tipo","Decomiso de automóviles – Por OIJ o denuncia de robo","Decomiso de automóviles – Por policía de tránsito","Decomiso de automóviles – Por piques","Decomiso de automóviles – Recuperado (hallazgo)","Decomiso de automóviles – Solo boletas de tránsito","Decomiso de automóviles – Boletas y placas decomisadas","Decomiso de motocicletas – Por OIJ o denuncia de robo","Decomiso de motocicletas – Por policía de tránsito","Decomiso de motocicletas – Por piques","Decomiso de motocicletas – Recuperado (hallazgo)","Decomiso de motocicletas – Solo boletas de tránsito","Decomiso de motocicletas – Boletas y placas decomisadas","Decomiso de marihuana – Gramos","Decomiso de marihuana – Kilos","Decomiso de marihuana – Cigarros","Decomiso de marihuana – Puchos","Decomiso de marihuana – Tocolas","Decomiso de marihuana – Plantas","Decomiso de marihuana – Semillas","Decomiso de cocaína – Gramos","Decomiso de cocaína – Kilos","Decomiso de cocaína – Puntas","Decomiso de crack – Gramos","Decomiso de crack – Piedras","Decomiso de otras drogas – Éxtasis","Decomiso de otras drogas – Heroína","Decomiso de otras drogas – Anfetaminas","Decomiso de otras drogas – Otras","Decomiso de animales – Bovinos","Decomiso de animales – Porcinos","Decomiso de animales – Equinos","Decomiso de animales – Aves","Decomiso de animales – Otros (reptiles y anfibios)","Decomiso de licores – Litros","Decomiso de licores – Pachas","Decomiso de licores – Botellas","Decomiso de licores – Latas","Decomiso de dinero – Colones","Decomiso de dinero – Dólares","Decomiso de dinero – Euros","Decomiso de dinero – Otros","Decomiso de alimentos – Pescado kg","Decomiso de alimentos – Carne kg","Decomiso de alimentos – Queso kg","Decomiso de alimentos – Granos","Decomiso de medicamentos – Pastillas","Decomiso de medicamentos – Cremas","Decomiso de medicamentos – Jarabes","Decomiso de madera – Tucas/trozos","Decomiso de mercadería – Ropa/perfumes/zapatos/otros","Investigados – Personas","Investigados – Vehículos","Investigados – Motos","Investigados – Furgones/camiones","Investigados – Agentes de seguridad","Investigados – Armas de fuego","Locales – Comerciales clausurados","Locales – Habitacionales clausurados","Controles de carretera"];
+/* Drogas: filas del Excel por tipo y unidad (gramos/kilos sin droga indicada = marihuana) */
+const DR={MAR:{GRAMOS:39,KILOS:40,CIGARROS:41,PUCHOS:42,TOCOLAS:43,PLANTAS:44,SEMILLAS:45},COC:{GRAMOS:46,KILOS:47,PUNTAS:48},CRK:{GRAMOS:49,PIEDRAS:50},OTR:{EXTASIS:51,HEROINA:52,ANFETAMINAS:53}};
+function drogas(lines,col){
+  const sobra=[],re=/(\d+(?:[.,]\d+)?)\s*(GRAMOS?|GRS?\b|KILOS?|KGS?\b|CIGARROS?|PUCHOS?|TOCOLAS?|PLANTAS?|SEMILLAS?|PUNTAS?|PIEDRAS?|EXTASIS|HEROINA|ANFETAMINAS?)/g;
+  for(const raw of lines){
+    const l=norm(sinAst(raw));if(!l||vacio(l))continue;
+    let hit=false,m;re.lastIndex=0;
+    while((m=re.exec(l))){
+      let u=m[2].replace(/^GRS?$/,'GRAMOS').replace(/^KGS?$/,'KILOS').replace(/S$/,'')+'S';
+      if(u==='EXTASIS')u='EXTASIS';if(u==='HEROINAS')u='HEROINA';
+      const d=/COCAINA/.test(l)?'COC':/CRACK/.test(l)?'CRK':/HEROINA|EXTASIS|ANFETAMINA/.test(u+l)&&(u==='HEROINA'||u==='EXTASIS'||u==='ANFETAMINAS')?'OTR':'MAR';
+      const grp=u==='PUNTAS'?'COC':u==='PIEDRAS'?'CRK':(u==='EXTASIS'||u==='HEROINA'||u==='ANFETAMINAS')?'OTR':d;
+      const r=DR[grp]&&DR[grp][u];if(r==null)continue;
+      col[r]=String(Math.round(((parseFloat(col[r])||0)+parseFloat(m[1].replace(',','.')))*1000)/1000);hit=true;
+    }
+    if(!hit)sobra.push(raw.trim());
+  }
+  return sobra;
+}
+function excel(txt){
+  const col=Array(FILAS).fill('0'),sin=[];
+  for(const b of bloques(txt.replace(/\r/g,'').split('\n'))){
+    b.ps.forEach((p,i)=>{
+      const e=etiqueta(p.t);if(!e)return;
+      const k=norm(sinAst(p.t).split(/[:：]/)[0]).replace(/[^A-Z]+/g,' ').trim();
+      const v=sinAst(e.val).trim(),cuerpo=i===b.ps.length-1?b.body:[];
+      if(vacio(v)&&!cuerpo.length)return;
+      if(k in XLS){col[XLS[k]]=/^\d+$/.test(v)?String(+v):v;return}
+      if(k==='DECOMISOS DE DROGAS'){const so=drogas([v,...cuerpo],col);if(so.length)sin.push(k+': '+so.join(' / '));return}
+      if(SIN_FILA.includes(k))return;
+      sin.push(k+(v?': '+v:'')+(cuerpo.length?(v?' / ':': ')+cuerpo.join(' / '):''));
+    });
+  }
+  const fil=col.map((v,i)=>v&&v!=='0'?ETQ[i]+': '+v:'').filter(Boolean);
+  /* 11 filas de encabezado del Excel (ministerio ... INDICADORES) quedan en blanco: 11 + 86 = 97 filas */
+  return{col:'\n'.repeat(11)+col.join('\n'),sin,fil};
+}
 function vista(esp){
   const ninguno=esp===null;
   ['campos','cierre','divCierre'].forEach(i=>$(i).hidden=ninguno||!!esp);
@@ -246,7 +334,7 @@ function mayus(el){const a=el.selectionStart,b=el.selectionEnd;const u=el.value.
 const pl=$('plantilla');
 document.addEventListener('input',e=>{
   const t=e.target;if(t.tagName!=='TEXTAREA')return;
-  mayus(t);auto(t);if(t===pl)armar();
+  mayus(t);auto(t);if(t===$('despachador')){try{localStorage.setItem('despachador',t.value)}catch(e){}}if(t===$('despachador'))filaRender();if(t===pl)armar();
 });
 async function copiar(id){
   const t=$(id).value;if(!t.trim()){snack('Nada que copiar');return}
@@ -259,9 +347,11 @@ $('pegar').onclick=async()=>{
   catch(e){pl.focus();snack('Permite el acceso al portapapeles o pega manualmente')}
 };
 $('limpiar').onclick=()=>{
-  pl.value='';lastLugar='';$('salida').value='';vista(null);['tipo','detalle','direccion','narracion'].forEach(i=>$(i).value='');
+  pl.value='';lastLugar='';lastV=null;$('fila').value='';$('filaCard').hidden=true;$('salida').value='';$('excel').value='';vista(null);['tipo','detalle','direccion','narracion'].forEach(i=>$(i).value='');
   document.querySelectorAll('textarea').forEach(auto);snack('Plantilla limpia');
 };
+/* Despachador: se llena una vez y queda guardado; Limpiar no lo borra, solo cambia si se edita o se borra aquí */
+try{$('despachador').value=localStorage.getItem('despachador')||''}catch(e){}
 document.querySelectorAll('textarea').forEach(auto);
 vista(null);
 </script>
