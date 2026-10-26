@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
-<title>Despacho v5</title>
+<title>Despacho v6</title>
 <style>
 :root{--primary:#1A73E8;--on-primary:#fff;--container:#E8F0FE;--on-container:#174EA6;--bg:#F1F3F4;--surface:#FFFFFF;--on-surface:#202124;--outline:#80868B;--div:#DADCE0;--bar:#FFFFFF;--snack:#323232;--on-snack:#FFFFFF;--sh:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15)}
 @media (prefers-color-scheme:dark){:root{--primary:#8AB4F8;--on-primary:#202124;--container:#394457;--on-container:#D2E3FC;--bg:#202124;--surface:#292A2D;--on-surface:#E8EAED;--outline:#9AA0A6;--div:#3C4043;--bar:#292A2D;--snack:#E8EAED;--on-snack:#202124}}
@@ -77,7 +77,7 @@ svg{width:18px;height:18px;fill:currentColor}
 </style>
 </head>
 <body>
-<header>Despacho <small>v5.0</small></header>
+<header>Despacho <small>v6.0</small></header>
 <main>
   <section class="card">
     <div class="field"><label for="despachador">Despachador</label><textarea id="despachador" rows="1"></textarea></div>
@@ -304,7 +304,7 @@ function armar(){
   const txt=$('plantilla').value;
   const nT=norm(txt),circ=/PLANTILLA CIRCULAR/.test(nT),nuevo=/DELEGACIONES/.test(nT)&&/ABORDAJES/.test(nT),cdc=!nuevo&&/CORTE DE CONTROL/.test(nT),eli=!circ&&(/ELITE/.test(nT)||nuevo);
   const esp=nuevo&&!circ?'CORTE ELITE':cdc?'CORTE DE CONTROL':circ?'PLANTILLA CIRCULAR':eli?'CORTE ELITE':'';
-  eliteRender(eli?txt:null);
+  eliteRender((eli||circ)?txt:null);
   vista(txt.trim()?esp:null);
   incs=[];
   if(esp){lastV=null;incPintar();filaRender();
@@ -541,7 +541,7 @@ function eliteParse(txt){
   return vals;
 }
 /* Numeración: sección sin datos = 1 página; con datos = 2 (la de SÍ y la de datos) -> "6/7" y todo lo siguiente se corre */
-let eliteTxt='',eliteSeq=[],eliteIdx=0;
+let eliteTxt='',eliteSeq=[],eliteIdx=0,eliteModo='LLENAR ÉLITE';
 const escA=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const eFind=n=>{for(let si=0;si<ELITE.length;si++)for(let fi=0;fi<ELITE[si].f.length;fi++)if(ELITE[si].f[fi].n===n)return[si,fi];return null};
 function corteParse(txt){
@@ -658,10 +658,46 @@ function apoyoRows(nom){
   const L=['CANTIDAD RECURSO HUMANO POLICIAL','CANTIDAD RADIO PATRULLAS','CANTIDAD MOTOCICLETAS'];
   return [['NOMBRE DEL CUERPO POLICIAL DE APOYO',nom.join(', ')]].concat(L.map((l,i)=>[l,String(t[i]),String(t[i]).padStart(2,'0')]),[['OTROS RECURSOS MÓVILES DE APOYO',ot.join(', ')]]);
 }
+/* Circular 0222-2026 (Operaciones diarias PON): mismas páginas del élite, tomando las 86 filas de la circular */
+const CMAP=(()=>{
+  const A=['AUTOMÓVILES','MOTOS'],V=['DECOMISADO OIJ O POR DENUNCIA ROBO','DECOMISADO POLICÍA DE TRÁNSITO','DECOMISADO "PIQUES"','RECUPERADO (HALLAZGO)','CON BOLETAS REALIZADAS POR TRÁNSITO','PLACAS DECOMISADAS'];
+  return [
+  'CONTRAVENCIÓN CONTRA LAS PERSONAS','CONTRAVENCIÓN CONTRA LA PROPIEDAD Y EL PATRIMONIO','CONTRAVENCIÓN CONTRA EL ORDEN PÚBLICO','CONTRAVENCIÓN CONTRA LA BUENAS COSTUMBRES','CONTRAVENCIÓN CONTRA INVIOLABILIDAD TERRENOS','CONTRAVENCIÓN CONTRA SEGURIDAD PÚBLICA',
+  null,
+  'RESIDENTE','CITAS','DECOMISOS DE PASAPORTE','RECHAZOS','APREHENSIONES POR MIGRACIÓN',
+  'ARMAS BLANCAS: PUNZOCORTANTE',
+  'NO LETALES: PISTOLA BALINES','NO LETALES: PISTOLA BALAS DE GOMA','NO LETALES: RIFLE DE COPAS','NO LETALES: ARMAS DE IMITACIÓN',
+  'ARMA FUEGO: PISTOLA','ARMA FUEGO: REVÓLVER','ARMA FUEGO: ARMA LARGA','ARMA FUEGO: ESCOPETA','ARMA FUEGO: SUBAMETRALLADORA','ARMA FUEGO: HECHIZAS',
+  'MUNICIÓN: BALAS','MUNICIÓN: CARGADORES','PÓLVORA: FUEGOS ARTIFICIALES (UNIDADES)','PÓLVORA: OTRO TIPO (UNIDADES)',
+  ...V.map(x=>A[0]+' '+x),...V.map(x=>A[1]+' '+x),
+  'MARIHUANA EN GRAMOS','MARIHUANA EN KILOS','MARIHUANA EN CIGARROS','MARIHUANA EN PUCHOS','MARIHUANA EN TOCOLAS','MARIHUANA EN PLANTAS','MARIHUANA EN SEMILLAS',
+  'COCAÍNA EN GRAMOS','COCAÍNA EN KILOS','COCAÍNA EN PUNTAS','CRACK EN GRAMOS','CRACK EN PIEDRAS',
+  'PASTILLAS ÉXTASIS','GRAMOS HEROÍNA','ANFETAMINAS','OTRAS DOSIS',
+  'ANIMALES: BOVINOS','ANIMALES: PORCINOS','ANIMALES: EQUINOS','ANIMALES: AVES','ANIMALES: OTROS (REPTILES Y ANFIBIOS)',
+  'LICORES: LITROS','LICORES: 1/2 LITRO (PACHAS)','LICORES: BOTELLAS','LICORES: LATAS',
+  'COLONES','DÓLARES','EUROS','OTROS TIPO DINEROS',
+  'ALIMENTOS: PESCADO KILOS','ALIMENTOS: CARNE KILOS','ALIMENTOS: QUESO KILOS','ALIMENTOS: GRANOS (FRIJOL, ARROZ, MAÍZ, OTROS)',
+  'MEDICAMENTOS: PASTILLAS','MEDICAMENTOS: CREMAS','MEDICAMENTOS: JARABES',
+  'MADERA: TUCAS / TROZAS','MERCADERÍA: OTROS DECOMISOS',
+  'PERSONAS INVESTIGADAS','VEHÍCULOS INVESTIGADOS','MOTOS INVESTIGADAS','FURGONES / CAMIONES INVESTIGADOS','AGENTES SEGURIDAD INVESTIGADOS','ARMAS FUEGO INVESTIGADOS',
+  'LOCALES COMERCIALES CLAUSURADOS','LOCALES HABITACIONALES CLAUSURADOS','CONTROLES DE CARRETERA'];
+})();
+function circParse(txt){
+  const x=excel(txt),vals=ELITE.map(s=>s.f.map(()=>0)),extra=[];
+  x.cols.forEach((c,i)=>{
+    const n=parseFloat(String(c).replace(',','.'))||0;if(!(n>0))return;
+    if(CMAP[i]===null){extra.push(['DETENIDOS POR COMISIÓN DE DELITOS (la circular no dice el tipo)',String(n)]);return}
+    const k=eFind(CMAP[i]);if(k)vals[k[0]][k[1]]=Math.round((vals[k[0]][k[1]]+n)*1000)/1000;
+    else extra.push([ETQ[i]||CMAP[i],String(n)]);
+  });
+  x.sin.forEach(t=>extra.push([t,'']));
+  return{vals,extra};
+}
 function eliteArmar(txt){
-  const nt=norm(txt),corte=/ABORDAJES/.test(nt)&&/DECOMISOS/.test(nt);
+  const nt=norm(txt),circ=/PLANTILLA CIRCULAR/.test(nt),corte=!circ&&/ABORDAJES/.test(nt)&&/DECOMISOS/.test(nt);
   let vals,extra=[],obs=null,apoyo=null;
-  if(corte){const r=corteParse(txt);vals=r.vals;extra=r.extra;obs=r.obs;apoyo=apoyoProc(r.apoyo,txt)}else vals=eliteParse(txt);
+  if(circ){const r=circParse(txt);vals=r.vals;extra=r.extra}
+  else if(corte){const r=corteParse(txt);vals=r.vals;extra=r.extra;obs=r.obs;apoyo=apoyoProc(r.apoyo,txt)}else vals=eliteParse(txt);
   const seq=[],sin=[];let pos=corte&&apoyo?7:6;
   const desp=($('despachador').value||'').trim().toUpperCase();
   seq.push({pag:'3',t:'DATOS DE QUIEN INGRESA',rows:[['NOMBRE DE LA PERSONA QUE INGRESA DATOS',desp||'—'],['NÚMERO DE TELÉFONO','22222405']]});
@@ -673,7 +709,7 @@ function eliteArmar(txt){
     if(rows.length){seq.push({pag:pos+'/'+(pos+1),t:s.t,rows});pos+=2}
     else{sin.push(pos+' '+s.c);pos+=1}
   });
-  if(corte){
+  if(corte||circ){
     if(obs)seq.push({pag:String(pos),t:'OBSERVACIONES',rows:[['OBSERVACIONES',obs]]});
     if(extra.length)seq.push({pag:'—',t:'REVISAR: SIN CLASIFICAR',rows:extra});
   }
@@ -696,6 +732,9 @@ function eliteRender(txt){
   const card=$('eliteCard');
   if(!txt){apoyoVisto=null;eliteTxt='';eliteSeq=[];eliteSin=[];card.hidden=true;eliteCerrar();return}
   eliteTxt=txt;
+  const esC=/PLANTILLA CIRCULAR/.test(norm(txt));
+  eliteModo=esC?'OPERACIONES DIARIAS PON · CIRCULAR 0222-2026':'LLENAR ÉLITE';
+  $('eliteBtn').textContent=esC?'Llenar':'Llenar élite';
   const r=eliteArmar(txt);eliteSeq=r.seq;eliteSin=r.sin;
   $('eliteVista').innerHTML=eliteVistaHtml();
   card.hidden=false;
@@ -705,7 +744,7 @@ function eliteRender(txt){
 function eliteModal(){
   if(!flotOn())return;
   const bd=$('eBd'),y=bd.scrollTop;
-  $('eHd').textContent='LLENAR ÉLITE · '+eliteSeq.length+' PÁGINAS';
+  $('eHd').textContent=eliteModo+' · '+eliteSeq.length+' PÁGINAS';
   bd.innerHTML=eliteVistaHtml();bd.scrollTop=y;
 }
 function eliteCerrar(){if(flotOn()){try{flot.close()}catch(e){}}flot=null}
