@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
-<title>Despacho v6</title>
+<title>Despacho v7</title>
 <style>
 :root{--primary:#1A73E8;--on-primary:#fff;--container:#E8F0FE;--on-container:#174EA6;--bg:#F1F3F4;--surface:#FFFFFF;--on-surface:#202124;--outline:#80868B;--div:#DADCE0;--bar:#FFFFFF;--snack:#323232;--on-snack:#FFFFFF;--sh:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15)}
 @media (prefers-color-scheme:dark){:root{--primary:#8AB4F8;--on-primary:#202124;--container:#394457;--on-container:#D2E3FC;--bg:#202124;--surface:#292A2D;--on-surface:#E8EAED;--outline:#9AA0A6;--div:#3C4043;--bar:#292A2D;--snack:#E8EAED;--on-snack:#202124}}
@@ -77,7 +77,7 @@ svg{width:18px;height:18px;fill:currentColor}
 </style>
 </head>
 <body>
-<header>Despacho <small>v6.0</small></header>
+<header>Despacho <small>v7.0</small></header>
 <main>
   <section class="card">
     <div class="field"><label for="despachador">Despachador</label><textarea id="despachador" rows="1"></textarea></div>
@@ -584,6 +584,14 @@ function corteParse(txt){
     return false;
   };
   let sec='head',apr=0,mot='';const inc=[],obs=[];
+  const flush=()=>{
+    if(apr>0){
+      const nm=norL(mot);let hit=false;
+      if(nm)outer:for(let si=0;si<3;si++)for(let fi=0;fi<ELITE[si].f.length;fi++)if(eMatch(ELITE[si].f[fi],nm)){vals[si][fi]+=apr;hit=true;break outer}
+      if(!hit){const rot='APREHENSIONES'+(mot?' · '+mot.toUpperCase():' (sin motivo)'),ex=extra.find(e=>e[0]===rot);if(ex)ex[1]=String(eNum(ex[1])+apr);else extra.push([rot,String(apr)])}
+    }
+    apr=0;mot='';
+  };
   for(const raw of txt.replace(/\r/g,'').split('\n')){
     const l=sinAst(raw).trim();if(!l||DIV.test(l))continue;
     const m=l.match(/^(.*?)\s*[:：]\s*(.*)$/);
@@ -591,7 +599,7 @@ function corteParse(txt){
     if(sec!=='obs'){
       const H=[['INSTITUCIONES','inst',/^INSTITUCIONES/],['ABORDAJES','abo',/^ABORDAJES$/],['ACCIONES OPERATIVAS','acc',/^ACCIONES OPERATIVAS$/],['APREHENSIONES','apr',/^APREHENSIONES$/],['DECOMISOS','dec',/^DECOMISOS$/],['DROGAS','dro',/^DROGAS$/],['INCIDENTE','inc',/^INCIDENTE RELEVANTE$/],['OBS','obs',/^OBSERVACIONES$/]];
       const h=H.find(x=>x[2].test(lab));
-      if(h&&(sec!=='inc'||h[1]==='obs')){sec=h[1];if((sec==='inc'||sec==='obs')&&val)(sec==='inc'?inc:obs).push(val);continue}
+      if(h&&(sec!=='inc'||h[1]==='obs')){flush();sec=h[1];if((sec==='inc'||sec==='obs')&&val)(sec==='inc'?inc:obs).push(val);continue}
     }
     if(sec==='inc'){inc.push(l);continue}
     if(sec==='obs'){if(!tryObs(l))obs.push(l);continue}
@@ -602,14 +610,14 @@ function corteParse(txt){
       const inner=val.replace(/[()]/g,'').trim();
       if(!inner||/^0+$/.test(inner))continue;
       const nm=m[1].replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ. ]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
-      ap.n.push(nm);
+      if(!ap.n.includes(nm))ap.n.push(nm);
       const re=/(\d+)\s*([A-Z]*)/g,nv=norm(inner),q=[0,0,0,''];let x;
       while((x=re.exec(nv))){const c=parseInt(x[1],10),u=x[2];
         if(!u||/^(RH|OFICIAL|POLICIA|AGENTE|FUNCIONARIO|PERSONAL|PERSONA|EFECTIVO|ELEMENTO)/.test(u))q[0]+=c;
         else if(/^(RP|PATRULLA|RADIO|UNIDAD)/.test(u))q[1]+=c;
         else if(/^MOTO/.test(u))q[2]+=c;
         else q[3]=(q[3]?q[3]+', ':'')+x[0].trim()}
-      if(q.some(v=>v))ap.q[nm]=q;
+      if(q.some(v=>v)){const p=ap.q[nm];ap.q[nm]=p?[p[0]+q[0],p[1]+q[1],p[2]+q[2],[p[3],q[3]].filter(Boolean).join(', ')]:q}
       continue}
     if(sec==='abo'){
       if(/^PERSONAS/.test(lab))add('PERSONAS INVESTIGADAS',n);
@@ -632,11 +640,7 @@ function corteParse(txt){
       else if(/^MOTO/.test(lab))sinC('DECOMISO MOTOCICLETAS (tipo)',n);
     }else if(sec==='dro'){curD=lab;dro(lab,val)}
   }
-  if(apr>0){
-    const nm=norL(mot);let hit=false;
-    if(nm)outer:for(let si=0;si<3;si++)for(let fi=0;fi<ELITE[si].f.length;fi++)if(eMatch(ELITE[si].f[fi],nm)){vals[si][fi]+=apr;hit=true;break outer}
-    if(!hit)extra.push(['APREHENSIONES'+(mot?' · '+mot.toUpperCase():' (sin motivo)'),String(apr)]);
-  }
+  flush();
   const o=[];if(inc.length)o.push('INCIDENTE RELEVANTE: '+inc.join(' '));if(obs.length)o.push(obs.join('\n'));
   return{vals,extra,obs:o.join('\n'),apoyo:ap};
 }
@@ -788,6 +792,7 @@ function bloques(lines){
   for(const raw of lines){
     const l=raw.trim();
     if(!l){blank=true;continue}
+    if(/^\*?\(\s*ESPECIFIQUE/.test(norm(sinAst(l)))&&!/[:：]\s*\S/.test(l))continue;
     const ps=partes(l);
     if(etiqueta(ps[0])){cur={ps:ps.map(p=>({t:p,v:etiqueta(p).val})),body:[],gap:false};out.push(cur)}
     else if(cur){if(!cur.body.length&&blank)cur.gap=true;cur.body.push(l)}
@@ -865,7 +870,7 @@ function excel(txt){
       const k=norm(sinAst(p.t).split(/[:：]/)[0]).replace(/[^A-Z]+/g,' ').trim();
       const v=sinAst(e.val).trim(),cuerpo=i===b.ps.length-1?b.body:[];
       if(vacio(v)&&!cuerpo.length)return;
-      if(k in XLS){col[XLS[k]]=/^\d+$/.test(v)?String(+v):v;return}
+      if(k in XLS){if(/^\d+([.,]\d+)?$/.test(v))sumar(col,XLS[k],v);else col[XLS[k]]=v;return}
       if(k==='DECOMISOS DE DROGAS'){const so=drogas([v,...cuerpo],col);if(so.length)sin.push(k+': '+so.join(' / '));return}
       if(/^(MARIHUANA|COCAINA|CRACK)$/.test(k)){const so=drogas([v,...cuerpo].filter(Boolean).map(x=>new RegExp(k).test(norm(sinAst(x)))?x:x+' '+k),col);if(so.length)sin.push(k+': '+so.join(' / '));return}
       if(k==='ARMAS NO LETALES'){
