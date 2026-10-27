@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
-<title>Despacho v7</title>
+<title>Despacho v8</title>
 <style>
-:root{--primary:#1A73E8;--on-primary:#fff;--container:#E8F0FE;--on-container:#174EA6;--bg:#F1F3F4;--surface:#FFFFFF;--on-surface:#202124;--outline:#80868B;--div:#DADCE0;--bar:#FFFFFF;--snack:#323232;--on-snack:#FFFFFF;--sh:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15)}
-@media (prefers-color-scheme:dark){:root{--primary:#8AB4F8;--on-primary:#202124;--container:#394457;--on-container:#D2E3FC;--bg:#202124;--surface:#292A2D;--on-surface:#E8EAED;--outline:#9AA0A6;--div:#3C4043;--bar:#292A2D;--snack:#E8EAED;--on-snack:#202124}}
+:root{--primary:#1A73E8;--on-primary:#fff;--container:#E8F0FE;--on-container:#174EA6;--bg:#F1F3F4;--surface:#FFFFFF;--on-surface:#202124;--outline:#80868B;--div:#DADCE0;--bar:#FFFFFF;--danger:#C5221F;--warn-bg:#FEF7E0;--warn-fg:#7A4F01;--snack:#323232;--on-snack:#FFFFFF;--sh:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15)}
+@media (prefers-color-scheme:dark){:root{--primary:#8AB4F8;--on-primary:#202124;--container:#2F4268;--on-container:#D2E3FC;--bg:#202124;--surface:#292A2D;--on-surface:#E8EAED;--outline:#A8AEB5;--div:#4A4D52;--danger:#F28B82;--warn-bg:#4A3B12;--warn-fg:#FDE293;--bar:#292A2D;--snack:#E8EAED;--on-snack:#202124}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
-body{background:var(--bg);color:var(--on-surface);font-family:"Google Sans",Roboto,system-ui,sans-serif;text-transform:uppercase;
+body{background:var(--bg);color:var(--on-surface);font-family:"Google Sans",Roboto,system-ui,sans-serif;
   padding-bottom:calc(env(safe-area-inset-bottom) + 24px)}
 header{position:sticky;top:0;z-index:5;background:var(--bar);box-shadow:var(--sh);padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;font-size:20px;font-weight:500;display:flex;align-items:center;gap:10px}
 header small{font-size:12px;font-weight:500;color:var(--on-container);background:var(--container);border-radius:4px;padding:2px 8px}
@@ -52,7 +52,7 @@ textarea:focus{outline:2px solid var(--primary);outline-offset:-2px;border-color
 .chk{position:absolute;right:12px;top:-11px;padding:0 6px;background:var(--surface);color:var(--primary);font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer}
 .chk input{width:18px;height:18px;margin:0;accent-color:var(--primary)}
 .row{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
-button{border:0;border-radius:4px;height:36px;padding:0 16px;font:inherit;font-size:14px;font-weight:500;letter-spacing:.09em;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-transform:uppercase}
+button{border:0;border-radius:4px;height:36px;padding:0 16px;font:inherit;font-size:14px;font-weight:500;letter-spacing:.02em;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
 button:active{filter:brightness(.9)}
 .tonal{background:var(--primary);color:var(--on-primary);box-shadow:0 1px 2px rgba(60,64,67,.3)}
 .text{background:transparent;color:var(--primary);padding:0 8px}
@@ -74,10 +74,112 @@ svg{width:18px;height:18px;fill:currentColor}
 .erow .v{font-weight:700;min-width:36px;text-align:right}
 .epag{font-weight:500;font-size:13px;color:var(--on-container);background:var(--container);border-radius:4px;padding:6px 10px;margin:14px 0 2px}
 .rojo{color:#D93025;font-size:13px;font-weight:500;margin-top:14px}
+
+.xn{font-size:15px}
+.xn:not(.nz){opacity:.4;font-weight:500}
+.tonal{height:38px;padding:0 18px}
+.tonal.mini{height:30px;padding:0 10px}
+#limpiar,#limpiarDesp{color:var(--danger)}
+.rojo{color:var(--danger)}
+.aviso{background:var(--warn-bg);color:var(--warn-fg);border-left:4px solid var(--warn-fg);border-radius:4px;padding:10px 12px;margin:10px 0 0;font-size:13px;line-height:1.4;white-space:pre-line}
+#plLista{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.plt{font-size:12px;font-weight:500;color:var(--on-surface);margin:0 2px}
+.plc{display:flex;align-items:center;gap:8px;border:1px solid var(--div);border-radius:8px;padding:6px 6px 6px 10px;background:var(--bg)}
+.pln{font-weight:700;font-size:13px;color:var(--primary);min-width:22px}
+.plp{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plb{font-size:11px;font-weight:700;border-radius:10px;padding:2px 8px;white-space:nowrap;border:1px solid transparent}
+.tp-CIRC{background:rgba(26,115,232,.16);border-color:rgba(26,115,232,.5)}
+.tp-ELI{background:rgba(30,142,62,.16);border-color:rgba(30,142,62,.5)}
+.tp-INC{background:rgba(249,171,0,.18);border-color:rgba(249,171,0,.6)}
+.tp-APR{background:rgba(217,48,37,.14);border-color:rgba(217,48,37,.5)}
+.tp-OTR{background:rgba(128,134,139,.18);border-color:rgba(128,134,139,.5)}
+.plx{flex:none;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--danger);font-size:18px;justify-content:center}
+.plx:active{background:var(--container)}
+
+.acc{display:flex;gap:8px;align-items:center;margin-top:12px}
+.ab{flex:1;flex-direction:column;justify-content:center;gap:4px;height:58px;padding:0 4px;border-radius:14px;background:var(--container);color:var(--on-container);font-size:12px;letter-spacing:.02em}
+.ab svg{width:22px;height:22px}
+.ab.pri{background:var(--primary);color:var(--on-primary)}
+.ab.dng{background:transparent;border:1px solid var(--div);color:var(--danger)}
+.plc{cursor:pointer;transition:background .15s,border-color .15s}
+.plc.grp{border-left:4px solid var(--primary)}
+.plc.sel{border-color:var(--primary);background:var(--container)}
+.plabrir{font-size:12px;color:var(--primary);flex:none}
+#plantilla:not(.col){max-height:320px;overflow:auto}
+
+/* ===== Mejoras estéticas v8.1 ===== */
+:root{--sh:0 1px 2px rgba(60,64,67,.18),0 2px 8px 1px rgba(60,64,67,.08)}
+/* 5. Espaciado, sombras y bordes */
+main{padding:18px 16px}
+.card{padding:18px;margin-bottom:20px;border-radius:12px}
+textarea,.apoin{border-width:1.5px}
+#recurso{border-width:1.5px!important}
+.field{margin-top:12px}
+.divider{margin:28px 4px 18px}
+/* 6. Barra superior */
+header{gap:10px}
+#hdInfo{margin-left:auto;display:flex;align-items:center;gap:6px;min-width:0}
+#hdInfo span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+#hdInfo .hdd{font-size:12px;font-weight:500;color:var(--on-container);background:var(--container);border-radius:12px;padding:3px 10px}
+/* 1. Alerta amarilla */
+.aviso{white-space:normal;padding:12px 14px;border-left-width:5px;border-radius:6px}
+.aviso .avt{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;margin-bottom:6px}
+.aviso .avt svg{width:20px;height:20px;flex:none}
+.aviso ul{margin:0;padding-left:20px}
+.aviso li{margin:6px 0;line-height:1.45}
+/* 2. Tabla del Excel */
+.xt td,.xt th{padding:9px 8px}
+.xt td{line-height:1.3}
+.xt tr.rz td:not(.xg){background:rgba(26,115,232,.12)}
+.xt tr.rz td:not(.xg):not(.xn){font-weight:500}
+.xn{min-width:52px}
+.xn:not(.nz){opacity:.55}
+/* 3. Jerarquía de botones: sólido solo en la acción principal */
+.tonal.mini{background:transparent;color:var(--primary);border:1.5px solid var(--outline);box-shadow:none}
+.tonal.mini:active{background:var(--container)}
+.ab.dng{border-color:var(--outline)}
+/* 4. Tarjetas de plantillas */
+.plc{border-left:5px solid var(--outline);padding:8px 8px 8px 10px;border-radius:10px}
+.plc.tc-CIRC{border-left-color:#1A73E8}
+.plc.tc-ELI{border-left-color:#1E8E3E}
+.plc.tc-INC{border-left-color:#F9AB00}
+.plc.tc-APR{border-left-color:#D93025}
+.plc.tc-OTR{border-left-color:#80868B}
+.plc.grp{box-shadow:inset 0 0 0 1px var(--primary)}
+.plc.sel{border-top-color:var(--primary);border-right-color:var(--primary);border-bottom-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.plb{font-size:11.5px;letter-spacing:.3px;padding:3px 10px}
+/* 8. Táctil: objetivos de 44px */
+button{height:44px;min-height:44px}
+.tonal,.tonal.mini{height:44px}
+.mini{height:44px;padding:0 14px;font-size:13px}
+.chip{height:44px;padding:0 16px;border-radius:22px}
+.arrow{width:44px;height:44px}
+.plx{width:44px;height:44px}
+.apoin{height:44px}
+.chk{gap:8px;padding:6px 8px;top:-20px}
+.chk input{width:22px;height:22px}
+.snack{font-weight:500}
+/* 7. Modo oscuro */
+@media (prefers-color-scheme:dark){
+  :root{--sh:0 1px 2px rgba(0,0,0,.5),0 2px 8px 1px rgba(0,0,0,.3)}
+  .aviso{border-left-color:#FDE293;background:#4A3B12}
+  .xt tr.rz td:not(.xg){background:rgba(138,180,248,.18)}
+  .xn:not(.nz){opacity:.7}
+  .plb{color:var(--on-surface)}
+  .tp-CIRC{background:rgba(138,180,248,.22)}
+  .tp-ELI{background:rgba(129,201,149,.22)}
+  .tp-INC{background:rgba(253,214,99,.22)}
+  .tp-APR{background:rgba(242,139,130,.22)}
+  .plc.tc-CIRC{border-left-color:#8AB4F8}
+  .plc.tc-ELI{border-left-color:#81C995}
+  .plc.tc-INC{border-left-color:#FDD663}
+  .plc.tc-APR{border-left-color:#F28B82}
+  .tonal.mini{border-color:var(--outline)}
+}
 </style>
 </head>
 <body>
-<header>Despacho <small>v7.0</small></header>
+<header>Despacho <small>v8.0</small><span id="hdInfo"></span></header>
 <main>
   <section class="card">
     <div class="field"><label for="despachador">Despachador</label><textarea id="despachador" rows="1"></textarea></div>
@@ -85,8 +187,10 @@ svg{width:18px;height:18px;fill:currentColor}
   </section>
   <section class="card">
     <div class="field"><label for="plantilla">Ingresa la plantilla</label><textarea id="plantilla" rows="1"></textarea></div>
-    <div class="row" style="justify-content:space-between;align-items:center">
-      <div style="display:flex;gap:8px"><button class="tonal" id="pegar"><svg viewBox="0 0 24 24"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0S9.6.84 9.18 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 18H5V4h2v3h10V4h2z"/></svg>Pegar</button><button class="tonal" id="copiarPl"><svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11z"/></svg>Copiar</button><button class="text" id="limpiar"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg>Limpiar</button></div>
+    <div class="acc">
+      <button class="ab pri" id="pegar"><svg viewBox="0 0 24 24"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0S9.6.84 9.18 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 18H5V4h2v3h10V4h2z"/></svg><span>Pegar</span></button>
+      <button class="ab" id="copiarPl"><svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11z"/></svg><span>Copiar</span></button>
+      <button class="ab dng" id="limpiar"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg><span>Limpiar</span></button>
       <button class="arrow" id="plTog" aria-label="Mostrar u ocultar plantilla"><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>
     </div>
   </section>
@@ -106,10 +210,13 @@ svg{width:18px;height:18px;fill:currentColor}
 var flot=null;
 const flotOn=()=>!!flot&&!flot.closed;
 const $=id=>(flotOn()&&flot.document.getElementById(id))||document.getElementById(id);
+const WARN='<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2zm12-3h-2v-2h2zm0-4h-2v-4h2z"/></svg>';
 const ICON='<svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11z"/></svg>';
+const rCirc=/PLANTILLA CIRCULAR|CIRCULAR\s*(?:N\W{0,3}\s*)?0*2{2,3}\s*[-\/]\s*2026/;
+const esCircT=n=>rCirc.test(n);
 const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
 const auto=t=>{if(t.classList.contains('col')){t.style.height='';return}t.style.height='auto';t.style.height=t.scrollHeight+2+'px'};
-function snack(m){const s=$('snack');s.textContent=m;s.classList.add('on');clearTimeout(snack.t);snack.t=setTimeout(()=>s.classList.remove('on'),1800)}
+function snack(m){const s=$('snack');s.textContent=(/^(Copiado|Pegado|Plantilla|Despachador)/.test(m)?'✓  ':'')+m;s.classList.add('on');clearTimeout(snack.t);snack.t=setTimeout(()=>s.classList.remove('on'),1800)}
 
 function bloque(host,id,label){
   host.insertAdjacentHTML('beforeend',`<div class="field"><label for="${id}">${label}</label><textarea id="${id}" rows="1"></textarea></div>
@@ -121,7 +228,7 @@ $('incSel').addEventListener('click',e=>{const b=e.target.closest('[data-inc]');
 bloque($('cierre'),'narracion','Narración de hechos');
 bloque($('filaCard'),'fila','Fila para Excel');
 $('fila').hidden=true;$('fila').insertAdjacentHTML('afterend','<div id="filaGrid" class="xgrid"></div>');
-$('filaCard').insertAdjacentHTML('afterbegin','<div class="field"><label for="recurso">Recurso que atiende incidente</label><input id="recurso" type="text" autocomplete="off" inputmode="text" style="width:100%;box-sizing:border-box;min-height:56px;background:transparent;color:var(--on-surface);border:1px solid var(--outline);border-radius:4px;padding:16px 52px 16px 16px;font:inherit;font-size:16px;text-transform:uppercase"><button class="arrow" id="recTog" aria-label="Mostrar unidades guardadas" style="position:absolute;right:8px;top:12px"><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button></div><div id="recLista" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px" hidden></div>');
+$('filaCard').insertAdjacentHTML('afterbegin','<div class="field"><label for="recurso">Recurso que atiende incidente</label><input id="recurso" type="text" autocomplete="off" inputmode="text" style="width:100%;box-sizing:border-box;min-height:56px;background:transparent;color:var(--on-surface);border:1px solid var(--outline);border-radius:4px;padding:16px 52px 16px 16px;font:inherit;font-size:16px;text-transform:uppercase"><button class="arrow" id="recTog" aria-label="Mostrar unidades guardadas" style="position:absolute;right:6px;top:6px"><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button></div><div id="recLista" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px" hidden></div>');
 $('fila').parentElement.style.marginTop='24px';
 /* Unidades: las de siempre + las nuevas que se escriban (se guardan en este navegador) */
 const REC0=['3963','3464','2046','1876','3703','3864','2934'];
@@ -145,13 +252,12 @@ $('filaGrid').addEventListener('input',()=>{$('fila').value=[...$('filaGrid').qu
 $('resultado').insertAdjacentHTML('beforeend','<div id="xlsWrap" hidden><div class="field"><label>Excel</label><div id="xlsGrid" class="xgrid"></div></div><div class="row"><button class="tonal" data-copy="excel">'+ICON+'Copiar</button></div><textarea id="excel" hidden></textarea></div>');
 $('xlsGrid').addEventListener('input',()=>{$('excel').value='\n'.repeat(11)+[...$('xlsGrid').querySelectorAll('[data-i]')].map(td=>td.textContent.trim()).join('\n')});
 bloque($('resultado'),'salida','Resultado');
-$('salida').parentElement.nextElementSibling.insertAdjacentHTML('beforeend','<button class="arrow" id="salTog" aria-label="Mostrar u ocultar plantilla" hidden><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button>');
-$('resultado').insertAdjacentHTML('beforeend','<div id="notasWrap" hidden><div class="row"><button class="arrow" id="notasTog" aria-label="Mostrar u ocultar avisos"><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button></div><div id="notas" hidden><div id="leyenda" style="font-size:12px;color:var(--on-surface);margin:10px 4px 0;white-space:pre-line"></div><div id="sinFila" style="font-size:12px;color:var(--primary);margin:10px 4px 0"></div></div></div>');
+$('resultado').insertAdjacentHTML('beforeend','<div id="notasWrap" hidden><div id="avisos" class="aviso" hidden></div><div class="row"><button class="arrow" id="notasTog" aria-label="Mostrar u ocultar avisos"><svg viewBox="0 0 24 24"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></button></div><div id="notas" hidden><div id="leyenda" style="font-size:12px;color:var(--on-surface);margin:10px 4px 0;white-space:pre-line"></div><div id="sinFila" style="font-size:12px;color:var(--primary);margin:10px 4px 0"></div></div></div>');
 $('direccion').parentElement.insertAdjacentHTML('beforeend','<label class="chk"><input type="checkbox" id="dirPre" checked>Dirección predeterminada</label>');
 let lastLugar='';
 function dirRender(){
   const pre='SAN JOSE, SAN JOSE, CATEDRAL';
-  const usa=$('dirPre').checked&&($('plantilla').value.trim()||lastLugar);
+  const usa=$('dirPre').checked&&(curTxt.trim()||lastLugar);
   $('direccion').value=usa?(lastLugar?pre+', '+lastLugar:pre):lastLugar;
   auto($('direccion'));
 }
@@ -300,20 +406,83 @@ function incPintar(){
   o.innerHTML=incs.length<2?'':'<div style="font-size:12px;margin:4px 4px 8px;color:var(--on-surface)">INCIDENTES EN LA PLANTILLA ('+incs.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+incs.map((x,i)=>`<button class="chip${i===incSel?' sel':''}" data-inc="${i}">${x.et}</button>`).join('')+'</div>';
 }
 let lastEsp='';
+/* Divisor entre plantillas pegadas: se ve en el cuadro pero los lectores lo ignoran */
+const SEPRE=/^[ \t]*▬{3,}.*$/gm;
+let store=[],sel=-1,abierto=false,curTxt='',curList=[];
+function agregarPl(t){t=(t||'').toUpperCase().trim();if(!t)return false;store.push({t});sel=store.length-1;abierto=false;return true}
+/* Grupos que se suman: C=circulares, K=cortes de control/élite nuevo, E=élite anterior. El resto (drogas, incidentes, aprehensiones) va individual */
+function grupoPl(t){
+  const n=norm(t);
+  if(esCircT(n))return'C';
+  if(/ABORDAJES/.test(n)&&/DECOMISOS/.test(n)||/CORTE DE CONTROL/.test(n))return'K';
+  if(/ELITE/.test(n))return'E';
+  return null;
+}
+const GN={C:'circulares',K:'cortes',E:'élites'};
+function efectivo(){
+  if(sel<0||!store[sel])return[];
+  const g=grupoPl(store[sel].t);
+  return g?store.filter(x=>grupoPl(x.t)===g).map(x=>x.t):[store[sel].t];
+}
+function tipoPl(t){
+  const n=norm(t);
+  if(esCircT(n))return['CIRCULAR','CIRC'];
+  if(/ABORDAJES/.test(n)&&/DECOMISOS/.test(n))return[/DELEGACIONES/.test(n)?'CORTE ÉLITE':'CORTE DE CONTROL','ELI'];
+  if(/CORTE DE CONTROL/.test(n))return['CORTE DE CONTROL','ELI'];
+  if(/ELITE/.test(n))return['ÉLITE','ELI'];
+  if(/APREHENSION/.test(n))return['APREHENSIÓN','APR'];
+  if(/DROGA|MARIHUANA|COCAINA|CRACK/.test(n)&&/PLANTILLA DE INCIDENTE/.test(n))return['DROGA','INC'];
+  if(/PLANTILLA DE INCIDENTE/.test(n))return['INCIDENTE','INC'];
+  return['PLANTILLA','OTR'];
+}
+function hdRender(){
+  const o=$('hdInfo');if(!o)return;
+  const d=(($('despachador')||{}).value||'').trim();let h='';
+  if(sel>=0&&store[sel]){const [t,c]=tipoPl(store[sel].t);h+=`<span class="plb tp-${c}">${escA(t)}</span>`}
+  if(d)h+=`<span class="hdd">${escA(d)}</span>`;
+  o.innerHTML=h;
+}
+function plPintar(){
+  hdRender();
+  const o=$('plLista');if(!o)return;
+  o.hidden=!store.length;
+  const sg=sel>=0&&store[sel]?grupoPl(store[sel].t):null,ng=sg?store.filter(x=>grupoPl(x.t)===sg).length:0;
+  o.innerHTML=!store.length?'':'<div class="plt">Plantillas ('+store.length+')'+(ng>1?' · total de '+ng+' '+GN[sg]:'')+' · toca una para ver u ocultar</div>'+store.map((x,i)=>{
+    const [t,c]=tipoPl(x.t),pre=x.t.split(/\r?\n/).map(limpiaLinea).find(l=>l)||'(vacía)';
+    const cl=(i===sel?' sel':'')+(ng>1&&i!==sel&&grupoPl(x.t)===sg?' grp':'');
+    return `<div class="plc tc-${c}${cl}" data-pli="${i}"><span class="pln">#${i+1}</span><span class="plb tp-${c}">${t}</span><span class="plp">${escA(pre)}</span><button class="plx" data-plx="${i}" aria-label="Quitar plantilla ${i+1}">✕</button></div>`}).join('');
+}
+let plPrev='';
+function plMostrar(){const ver=abierto&&sel>=0&&!!store[sel];pl.value=ver?store[sel].t:'';plPrev=pl.value;plCol(!ver);auto(pl)}
+function plTocar(i){if(sel===i)abierto=!abierto;else{sel=i;abierto=true}plMostrar();armar()}
+function plNueva(t){const hay=store.length;if(!agregarPl(t))return;plMostrar();armar();snack(hay?'Plantilla agregada':'Pegado')}
+function plEditar(){
+  /* Pegado por cualquier vía (teclado, menú, sugerencia del teclado): entra un bloque grande de golpe -> tarjeta nueva y cuadro limpio */
+  {const cur=pl.value,prev=plPrev,m=Math.min(prev.length,cur.length);let i=0,j=0;
+   while(i<m&&prev[i]===cur[i])i++;
+   while(j<m-i&&prev[prev.length-1-j]===cur[cur.length-1-j])j++;
+   const chunk=cur.slice(i,cur.length-j);
+   if(chunk.length>=20&&chunk.trim()){pl.value=prev;plNueva(chunk);return}}
+  if(sel<0||!abierto||!store[sel]){if(!pl.value.trim())return;store.push({t:pl.value});sel=store.length-1;abierto=true}
+  else store[sel].t=pl.value;
+  plPrev=pl.value;
+  armar();
+}
+const filtrarN=()=>curList.length>1?curList.map(filtrar).join('\n\n'):filtrar(curTxt);
 function armar(){
-  const txt=$('plantilla').value;
-  const nT=norm(txt),circ=/PLANTILLA CIRCULAR/.test(nT),nuevo=/DELEGACIONES/.test(nT)&&/ABORDAJES/.test(nT),cdc=!nuevo&&/CORTE DE CONTROL/.test(nT),eli=!circ&&(/ELITE/.test(nT)||nuevo);
+  plPintar();
+  curList=efectivo();const txt=curList.join('\n\n');curTxt=txt;
+  const nT=norm(txt),circ=esCircT(nT),nuevo=/DELEGACIONES/.test(nT)&&/ABORDAJES/.test(nT),cdc=!nuevo&&/CORTE DE CONTROL/.test(nT),eli=!circ&&(/ELITE/.test(nT)||nuevo);
   const esp=nuevo&&!circ?'CORTE ELITE':cdc?'CORTE DE CONTROL':circ?'PLANTILLA CIRCULAR':eli?'CORTE ELITE':'';
   eliteRender((eli||circ)?txt:null);
   vista(txt.trim()?esp:null);
   incs=[];
   if(esp){lastV=null;incPintar();filaRender();
-    $('salida').value=esp==='CORTE ELITE'?'':filtrar(txt);
-    if(esp==='PLANTILLA CIRCULAR'){if(lastEsp!==esp)salCol(true)}else{$('salida').classList.remove('col');$('salTog').classList.remove('abierto')}
+    $('salida').value=(esp==='CORTE ELITE'||esp==='PLANTILLA CIRCULAR')?'':filtrarN();
     lastEsp=esp;auto($('salida'));
     const x=esp==='PLANTILLA CIRCULAR'?excel(txt):null;
     $('xlsWrap').hidden=!x;$('notasWrap').hidden=!x||(!x.fil.length&&!x.av.length&&!x.sin.length);
-    if(x){$('excel').value=x.col;xlsRender(x);$('leyenda').textContent=[x.fil.length?'LEYENDA (FILA DEL EXCEL: CANTIDAD)\n'+x.fil.join('\n'):'',x.av.length?'⚠ REVISAR EN EL EXCEL:\n'+x.av.join('\n'):''].filter(Boolean).join('\n\n');$('sinFila').textContent=x.sin.length?'SIN FILA EN EXCEL: '+x.sin.join(' | '):''}
+    if(x){$('excel').value=x.col;xlsRender(x);$('leyenda').textContent=x.fil.length?'LEYENDA (FILA DEL EXCEL: CANTIDAD)\n'+x.fil.join('\n'):'';$('avisos').innerHTML=x.av.length?'<div class="avt">'+WARN+'<span>Revisar en el Excel</span></div><ul>'+x.av.map(a=>'<li>'+escA(a)+'</li>').join('')+'</ul>':'';$('avisos').hidden=!x.av.length;$('sinFila').textContent=x.sin.length?'SIN FILA EN EXCEL: '+x.sin.join(' | '):''}
     return}
   lastEsp='';
   const mi=/PLANTILLA DE INCIDENTE/.test(nT)&&!/APREHENSION/.test(nT)?leerIncidente(txt):null;
@@ -698,7 +867,7 @@ function circParse(txt){
   return{vals,extra};
 }
 function eliteArmar(txt){
-  const nt=norm(txt),circ=/PLANTILLA CIRCULAR/.test(nt),corte=!circ&&/ABORDAJES/.test(nt)&&/DECOMISOS/.test(nt);
+  const nt=norm(txt),circ=esCircT(nt),corte=!circ&&/ABORDAJES/.test(nt)&&/DECOMISOS/.test(nt);
   let vals,extra=[],obs=null,apoyo=null;
   if(circ){const r=circParse(txt);vals=r.vals;extra=r.extra}
   else if(corte){const r=corteParse(txt);vals=r.vals;extra=r.extra;obs=r.obs;apoyo=apoyoProc(r.apoyo,txt)}else vals=eliteParse(txt);
@@ -736,7 +905,7 @@ function eliteRender(txt){
   const card=$('eliteCard');
   if(!txt){apoyoVisto=null;eliteTxt='';eliteSeq=[];eliteSin=[];card.hidden=true;eliteCerrar();return}
   eliteTxt=txt;
-  const esC=/PLANTILLA CIRCULAR/.test(norm(txt));
+  const esC=esCircT(norm(txt));
   eliteModo=esC?'OPERACIONES DIARIAS PON · CIRCULAR 0222-2026':'LLENAR ÉLITE';
   $('eliteBtn').textContent=esC?'Llenar':'Llenar élite';
   const r=eliteArmar(txt);eliteSeq=r.seq;eliteSin=r.sin;
@@ -778,7 +947,7 @@ const DIV=/^[━─—_=\-]{5,}$/;
 const sinAst=s=>s.replace(/\*/g,'').replace(/[\u2060\u200B\u200C\u200D\uFE0F]/g,'');
 const vacio=v=>{v=sinAst(v).trim();return !v||/^\(\s*\)$/.test(v)||/^[-–]+$/.test(v)||/^0+([.,]0+)?$/.test(v)};
 function etiqueta(l){
-  const m=sinAst(l).trim().match(/^([^:：]{1,60}?)\s*[:：]\s*(.*)$/);
+  const m=sinAst(l).trim().match(/^([^:：=]{1,60}?)\s*[:：=]\s*(.*)$/);
   if(m)return{val:m[2]};
   if(/^\*[^*]+\*$/.test(l.trim()))return{val:''};
   return null;
@@ -816,7 +985,7 @@ function filtrar(txt){
   const hasDiv=secs.length>1,sep=hasDiv?'\n':'\n\n',res=[];
   secs.forEach((s,i)=>{
     if(i===0){
-      let k=s.findIndex(l=>/^([^:：]{1,60}?)\s*[:：]/.test(sinAst(l).trim()));
+      let k=s.findIndex(l=>/^([^:：=]{1,60}?)\s*[:：=]/.test(sinAst(l).trim()));
       if(k<0)k=s.length;
       const pre=s.slice(0,k).map(l=>l.trim()).filter(Boolean).join(hasDiv?'\n':'\n\n');
       const t=[pre,bloques(s.slice(k)).map(textoBloque).filter(Boolean).join(sep)].filter(Boolean).join('\n\n');
@@ -840,6 +1009,8 @@ function drogas(lines,col){
   const sobra=[],re=/(\d+(?:[.,]\d+)?)\s*(GRAMOS?|GRS?\b|KILOS?|KGS?\b|CIGARRILLOS?|CIGARROS?|PUCHOS?|TOCOLAS?|PLANTAS?|SEMILLAS?|PUNTAS?|PIEDRAS?|EXTASIS|HEROINA|ANFETAMINAS?)/g;
   for(const raw of lines){
     const l=norm(sinAst(raw));if(!l||vacio(l))continue;
+    if(/^0+(?:[.,]0+)?(?=\s|$)/.test(l))continue;
+    if(/TUSSI|TUSI|KETAMINA|\bWAS\b|\bWAX\b/.test(l)){sobra.push(raw.trim());continue}
     let hit=false,m;re.lastIndex=0;
     while((m=re.exec(l))){
       let u=m[2].replace(/^GRS?$/,'GRAMOS').replace(/^KGS?$/,'KILOS').replace(/^CIGARRILLOS?$/,'CIGARROS').replace(/S$/,'')+'S';
@@ -859,18 +1030,24 @@ function xlsRender(x){
   let h='<table class="xt">',i=0;
   TBL.forEach(([g,sub])=>{const solo=sub.length===1&&sub[0]==='';
     sub.forEach((n,j)=>{const v=x.cols[i];
-      h+='<tr>'+(j?'':`<td class="xg" rowspan="${sub.length}"${solo?' colspan="2"':''}>${escA(g)}</td>`)+(solo?'':`<td>${escA(n)}</td>`)+`<td class="xn${v!=='0'?' nz':''}" contenteditable="true" inputmode="decimal" data-i="${i}">${escA(v)}</td></tr>`;i++})});
+      h+='<tr'+(v!=='0'?' class="rz"':'')+'>'+(j?'':`<td class="xg" rowspan="${sub.length}"${solo?' colspan="2"':''}>${escA(g)}</td>`)+(solo?'':`<td>${escA(n)}</td>`)+`<td class="xn${v!=='0'?' nz':''}" contenteditable="true" inputmode="decimal" data-i="${i}">${escA(v)}</td></tr>`;i++})});
   $('xlsGrid').innerHTML=h+'</table>';
+}
+function prepCirc(l){
+  if(/^(DECOMISOS|APREHENSIONES)$/.test(norm(sinAst(l))))return l.trim()+':';
+  const m=l.trim().match(/^([^:：=]{1,60}?[:：=]\s*\*?\s*\d+(?:[.,]\d+)?)\s+(\S[^:：=]{0,60}[:：=].*)$/);
+  return m?m[1]+'   '+m[2]:l;
 }
 function excel(txt){
   const col=Array(FILAS).fill('0'),sin=[],av=[];
-  for(const b of bloques(txt.replace(/\r/g,'').split('\n'))){
+  for(const b of bloques(txt.replace(/\r/g,'').split('\n').map(prepCirc))){
     b.ps.forEach((p,i)=>{
       const e=etiqueta(p.t);if(!e)return;
-      const k=norm(sinAst(p.t).split(/[:：]/)[0]).replace(/[^A-Z]+/g,' ').trim();
-      const v=sinAst(e.val).trim(),cuerpo=i===b.ps.length-1?b.body:[];
+      const k=norm(sinAst(p.t).split(/[:：=]/)[0]).replace(/[^A-Z]+/g,' ').trim();
+      const v=sinAst(e.val).trim(),cuerpo=(i===b.ps.length-1?b.body:[]).filter(x=>!vacio(x));
       if(vacio(v)&&!cuerpo.length)return;
-      if(k in XLS){if(/^\d+([.,]\d+)?$/.test(v))sumar(col,XLS[k],v);else col[XLS[k]]=v;return}
+      if(k in XLS){let vv=v;if(vacio(vv)&&cuerpo.length){const mm=cuerpo[0].match(/^(\d+(?:[.,]\d+)?)\b/);vv=mm?mm[1]:''}
+        if(/^\d+([.,]\d+)?$/.test(vv))sumar(col,XLS[k],vv);else if(vv)col[XLS[k]]=vv;return}
       if(k==='DECOMISOS DE DROGAS'){const so=drogas([v,...cuerpo],col);if(so.length)sin.push(k+': '+so.join(' / '));return}
       if(/^(MARIHUANA|COCAINA|CRACK)$/.test(k)){const so=drogas([v,...cuerpo].filter(Boolean).map(x=>new RegExp(k).test(norm(sinAst(x)))?x:x+' '+k),col);if(so.length)sin.push(k+': '+so.join(' / '));return}
       if(k==='ARMAS NO LETALES'){
@@ -895,10 +1072,18 @@ function excel(txt){
         if(!sp&&!vacio(v)){sumar(col,27,v);av.push('DECOMISOS DE AUTOMÓVILES Y MOTOS ('+String(+v)+'): la plantilla no separa autos y motos ni dice el motivo. Quedó todo en "Decomiso de automóviles – Por OIJ o denuncia de robo". Si son motos, pásalo a "Decomiso de motocicletas – Por OIJ o denuncia de robo"; si fue por tránsito, piques, hallazgo o boletas, cámbialo a esa fila en el Excel.')}
         else if(sp)av.push('DECOMISOS DE AUTOMÓVILES Y MOTOS: el motivo no viene en la plantilla; quedó en "Por OIJ o denuncia de robo". Si fue por tránsito, piques, hallazgo o boletas, cámbialo a esa fila en el Excel.');
         return}
+      if(k==='OTRO TIPO DE DECOMISOS'&&cuerpo.length){
+        const dl=cuerpo.filter(x=>/MARIHUANA|COCAINA|CRACK|TUSSI|TUSI|KETAMINA|HEROINA|EXTASIS|ANFETAMINA|DOSIS|PUCHO|TOCOLA|CIGARR|PUNTA|PIEDRA/.test(norm(sinAst(x))));
+        const ot=cuerpo.filter(x=>!dl.includes(x));if(!vacio(v))ot.unshift(v);
+        const so=drogas(dl,col);if(so.length)sin.push(k+': '+so.join(' / '));
+        if(ot.length)sin.push(k+': '+ot.join(' / '));
+        return}
       if(SIN_FILA.includes(k))return;
       sin.push(k+(v?': '+v:'')+(cuerpo.length?(v?' / ':': ')+cuerpo.join(' / '):''));
     });
   }
+  {const g=new Map();av.forEach(t=>{const m=t.match(/^(.*?) \((\d+)\): (.*)$/);const k=m?m[1]+'|'+m[3]:t;const o=g.get(k)||{t,n:0,m:!!m,a:m&&m[1],r:m&&m[3]};if(m)o.n+=+m[2];g.set(k,o)});
+  av.splice(0,av.length,...[...g.values()].map(o=>o.m?o.a+' ('+o.n+'): '+o.r:o.t))}
   const fil=col.map((v,i)=>v&&v!=='0'?ETQ[i]+': '+v:'').filter(Boolean);
   /* 11 filas de encabezado del Excel (ministerio ... INDICADORES) quedan en blanco: 11 + 86 = 97 filas */
   return{col:'\n'.repeat(11)+col.join('\n'),cols:col,sin,fil,av};
@@ -908,27 +1093,36 @@ function vista(esp){
   ['campos','cierre','divCierre'].forEach(i=>$(i).hidden=ninguno||!!esp);
   $('resultado').hidden=ninguno||!esp||esp==='CORTE ELITE';
   const circ=esp==='PLANTILLA CIRCULAR';
-  $('salTog').hidden=!circ;
-  const sr=$('salida').parentElement.nextElementSibling;sr.style.justifyContent=circ?'space-between':'flex-end';sr.style.alignItems='center';
-  if(esp)document.querySelector('label[for="salida"]').textContent=circ?'ELEMENTOS CON DATOS':esp;
-  $('salida').parentElement.style.marginTop=circ?'24px':'';
+  const sf=$('salida').parentElement;sf.hidden=circ;sf.nextElementSibling.hidden=circ;
+  if(esp&&!circ)document.querySelector('label[for="salida"]').textContent=esp;
 }
 
+$('plantilla').closest('.card').insertAdjacentHTML('beforeend','<div id="plLista" hidden></div>');
+$('plLista').addEventListener('click',e=>{
+  const x=e.target.closest('[data-plx]');
+  if(x){
+    const i=+x.dataset.plx;store.splice(i,1);
+    if(!store.length){$('limpiar').click();return}
+    if(sel===i){sel=Math.min(i,store.length-1);abierto=false}else if(sel>i)sel--;
+    plMostrar();armar();snack('Plantilla quitada');return}
+  const c=e.target.closest('[data-pli]');if(c)plTocar(+c.dataset.pli);
+});
 /* ---------- Eventos ---------- */
 function mayus(el){const a=el.selectionStart,b=el.selectionEnd;const u=el.value.toUpperCase();if(u!==el.value){el.value=u;try{el.setSelectionRange(a,b)}catch(e){}}}
 const pl=$('plantilla');
 function plCol(c){pl.classList.toggle('col',c);if(c)pl.scrollTop=0;$('plTog').classList.toggle('abierto',!c);auto(pl)}
 function plSync(){}
-function salCol(c){const o=$('salida');o.classList.toggle('col',c);if(c)o.scrollTop=0;$('salTog').classList.toggle('abierto',!c);auto(o)}
-const esCirc=()=>/PLANTILLA CIRCULAR/.test(norm(pl.value));
-$('salTog').onclick=()=>salCol(!$('salida').classList.contains('col'));
 $('notasTog').onclick=()=>{const o=$('notas');o.hidden=!o.hidden;$('notasTog').classList.toggle('abierto',!o.hidden)};
 $('plTog').onclick=()=>plCol(!pl.classList.contains('col'));
 pl.addEventListener('input',plSync);
-pl.addEventListener('paste',()=>setTimeout(()=>{plCol(true);if(esCirc())salCol(true);plSync()},0));
+pl.addEventListener('paste',e=>{
+  const t=(e.clipboardData||window.clipboardData).getData('text');
+  if(!t||!t.trim())return;
+  e.preventDefault();plNueva(t);
+});
 document.addEventListener('input',e=>{
   const t=e.target;if(t.tagName!=='TEXTAREA')return;
-  if(t.id!=='excel')mayus(t);auto(t);if(t===$('despachador')){try{localStorage.setItem('despachador',t.value)}catch(e){}}if(t===$('despachador')){filaRender();if(eliteTxt)eliteRender(eliteTxt)}if(t.id==='tipo'||t.id==='detalle'||t.id==='narracion')filaRender();if(t===pl)armar();
+  if(t.id!=='excel')mayus(t);auto(t);if(t===$('despachador')){try{localStorage.setItem('despachador',t.value)}catch(e){}}if(t===$('despachador')){hdRender();filaRender();if(eliteTxt)eliteRender(eliteTxt)}if(t.id==='tipo'||t.id==='detalle'||t.id==='narracion')filaRender();if(t===pl)plEditar();
 });
 function onInputApo(e){
   const t=e.target;if(!t.classList||!t.classList.contains('apoin'))return;
@@ -953,17 +1147,20 @@ async function copiarTexto(t){
   snack('Copiado');
 }
 $('eliteBtn').onclick=eliteAbrir;
-$('copiarPl').onclick=()=>copiarTexto(pl.value);
+$('copiarPl').onclick=()=>copiarTexto(sel>=0&&store[sel]?store[sel].t:store.map(x=>x.t).join('\n\n'));
 $('pegar').onclick=async()=>{
-  try{const t=await navigator.clipboard.readText();pl.value=t.toUpperCase();armar();plCol(true);if(esCirc())salCol(true);plSync();snack('Pegado')}
-  catch(e){pl.focus();snack('Permite el acceso al portapapeles o pega manualmente')}
+  try{
+    const t=await navigator.clipboard.readText();
+    if(!t.trim()){snack('El portapapeles está vacío');return}
+    plNueva(t);
+  }catch(e){abierto=false;plMostrar();pl.focus();snack('Mantén presionado en el cuadro y elige Pegar')}
 };
 $('limpiarDesp').onclick=()=>{
   const d=$('despachador');d.value='';try{localStorage.removeItem('despachador')}catch(e){}
-  auto(d);filaRender();if(eliteTxt)eliteRender(eliteTxt);snack('Despachador limpio');
+  auto(d);hdRender();filaRender();if(eliteTxt)eliteRender(eliteTxt);snack('Despachador limpio');
 };
 $('limpiar').onclick=()=>{
-  pl.value='';plCol(true);plSync();lastLugar='';lastV=null;incs=[];incKey='';incPintar();eliteRender(null);$('fila').value='';$('filaCard').hidden=true;$('salida').value='';$('excel').value='';vista(null);['tipo','detalle','direccion','narracion'].forEach(i=>$(i).value='');
+  store=[];sel=-1;abierto=false;curTxt='';curList=[];pl.value='';plPrev='';plPintar();plCol(true);plSync();lastLugar='';lastV=null;incs=[];incKey='';incPintar();eliteRender(null);$('fila').value='';$('filaCard').hidden=true;$('salida').value='';$('excel').value='';vista(null);['tipo','detalle','direccion','narracion'].forEach(i=>$(i).value='');
   document.querySelectorAll('textarea').forEach(auto);snack('Plantilla limpia');
 };
 /* Despachador: se llena una vez y queda guardado; Limpiar no lo borra, solo cambia si se edita o se borra aquí */
@@ -971,6 +1168,7 @@ try{$('despachador').value=localStorage.getItem('despachador')||''}catch(e){}
 document.querySelectorAll('textarea').forEach(auto);
 plCol(true);
 vista(null);
+hdRender();
 </script>
 </body>
 </html>
